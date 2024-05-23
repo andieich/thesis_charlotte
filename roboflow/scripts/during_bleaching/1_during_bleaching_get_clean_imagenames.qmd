@@ -1,0 +1,150 @@
+---
+title: "confirm_imagenames"
+format: html
+editor: visual
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(janitor)
+
+update_sample_id <- function(data){
+  
+  # make_long
+  
+  make_long <- function(sample_id){
+    paste0(substr(sample_id, 1, 5),
+           "0",
+           substr(sample_id, 6, 8))
+  }
+  
+  data_new <- data %>% 
+    mutate(sample_id = ifelse(!is.na(sample_id) & nchar(sample_id) == 8, 
+                              make_long(sample_id),
+                              sample_id)
+           )
+  
+  problems <- which(!is.na(data_new$sample_id) & nchar(data_new$sample_id) != 9)
+  
+  if (length(problems) > 0){
+    warning(paste("Some sample_ids have not 9 digits:"), data_new$sample_id[problems])
+  }
+  
+  return(data_new)
+}
+
+```
+
+## Aim
+
+Sometimes, images are directly deleted on Roboflow, this script compares the uploaded images with Charlotte's sample list
+
+```{r}
+dat_samples <-  read.csv(here("roboflow/data/2024_05_15_sample_list_Charlotte.csv"))
+
+```
+
+OK, all good
+
+Make data frame for filenames used to filter the annotation data
+
+Get image names and cut to ID
+
+```{r}
+images <- list.files(here("roboflow/images/during_bleaching/2024_05_22_V13_raw/train"), pattern = ".jpg")
+
+```
+
+make df
+
+```{r}
+dat_images <- data.frame(filename = images) %>% 
+  separate(filename, into = c("y","m","d","sample_id","orig"), remove = F) %>%
+  mutate(sample_id = paste0(sample_id,"P")) %>%
+  update_sample_id() %>%
+  select(filename, sample_id, orig)
+```
+
+Which needed images (from `dat_samples`) are not in `images`?
+
+```{r}
+dat_samples <- dat_samples %>% 
+  left_join(dat_images, by = "sample_id")
+```
+
+```{r}
+dat_samples %>% 
+  filter(is.na(filename))
+```
+
+All there!
+
+The detection of the chart seems to work better when RAW images are developed as `.png` compared to using the `.jpg` directly.
+
+Therefore, the RAW files needs to be found and renamed to match the name of the `.jpg`.
+
+1.  Make the original filename of the raw image by adding `.ORF`
+
+    ```{r}
+    dat_samples <- dat_samples %>% 
+      mutate(orig = paste0(orig, ".ORF"))
+    ```
+
+2.  Save:
+
+    ```{r}
+    write.csv(dat_samples, 
+              here("roboflow/data/2024_05_22_during_bleaching_imagenames.csv"),
+              row.names = F)
+    ```
+
+3.  Copy the new column to `TextEdit` and change to Plain text (Format \> Plain Text)
+
+4.  Copy the file names and use `Find Any File` to find the raw images (`Name contains any of`)
+
+5.  Copy to `roboflow/images/during_bleaching/raw_images`
+
+6.  Rename `.orf` files:
+
+    ```{r}
+    fn_old <-  dat_samples$orig
+    fn_new = paste0(substr(dat_samples$filename,
+                    1,
+                    nchar(dat_samples$filename)-4),
+                    ".ORF")
+
+    path = here("roboflow/images/during_bleaching/raw_images/")
+
+    file.rename(paste0(path, fn_old), 
+                paste0(path, fn_new))
+
+    ```
+
+7.  Use `libraw` to develop images into .`tiff`
+
+    ```{bash}
+    cd /Users/andi/Documents/PhD/stats/thesis_charlotte/roboflow/images/during_bleaching/raw_images
+    dcraw_emu -T -g 2.4 12.92 -Z tiff *.ORF 
+    ```
+
+8.  Use `mogrify` to convert `.tiff` to `.png`
+
+    ```{bash}
+    cd /Users/andi/Documents/PhD/stats/thesis_charlotte/roboflow/images/during_bleaching/raw_images
+    mogrify -format png *.tiff
+    ```
+
+9.  remove `.tiff` files to save space
+
+    ```{bash}
+    cd /Users/andi/Documents/PhD/stats/thesis_charlotte/roboflow/images/during_bleaching/raw_images
+    rm *.tiff
+    ```
+
+10. move `.png` to new folder
+
+    ```{bash}
+    cd /Users/andi/Documents/PhD/stats/thesis_charlotte/roboflow/images/during_bleaching/raw_images
+    mv *.png /Users/andi/Documents/PhD/stats/thesis_charlotte/roboflow/images/during_bleaching/2024_05_22_V13_filtered/train
+    ```

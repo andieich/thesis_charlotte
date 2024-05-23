@@ -1,0 +1,84 @@
+---
+title: "Protocol Chlorophyll"
+format: 
+  html:
+    toc: true
+    toc-depth: 4
+    toc-title: "Content"
+    toc-location: left
+editor: visual  
+date: '2024-04-02'
+---
+
+### 1. Aim
+
+Measurement of chlorophyll a concentration and Symbiodiniaceae density
+
+------------------------------------------------------------------------
+
+### 2. Overview workflow
+
+**General remark**
+
+Chlorophyll degrades quickly under high temperatures and light. Keep the samples on ice and the lab as dark as possible.
+
+**Remove tissue from corals**
+
+An air gun is used to blow off the corals tissue in sterile filtrated seawater. The tissue slurry is collected in a zip-lock bag and transferred into a 50 mL tube. After centrifugation to remove excess water, the slurry is sub-sampled for chlorophyll extraction and Symbiodiniaceae counts.
+
+**Extract chlorophyll**
+
+Chlorophyll is extracted in acetone and the concentration measured with a photometer
+
+**Symbiodiniaceae couts**
+
+For six sub samples, the Symbiodiniaceae are counted with a hemocytometer
+
+**Surface area**
+
+The chlorophyll concentration and Symbiodiniaceae counts have to be normalized to the tissue surface area of the coral fragment. The area is estimated by comoaring the weight of the coral fragment before and after coating it with paraffin wax.
+
+------------------------------------------------------------------------
+
+### 3. Materials
+
+#### 3.1 Tissue removal, chlorophyll extraction, and preparation for Symbiodiniaceae counts
+
+**In Biomol 2:**
+
+-   Air gun with SCUBA tank
+
+<!-- -->
+
+-   Homogenisator
+
+-   Ziplock bags
+
+-   Forceps
+
+-   Cool box and ice
+
+-   100% Acetone
+
+-   70% Ethanol in wash bottle
+
+-   Sterile filtrated seawater (SSW), filtered with Whatman GF/C filter, about 50 mL per sample
+
+-   1000 mL pipette and tips
+
+-   1x 50 mL Falcon tube per sample
+
+-   2x 2 mL tubes per sample
+
+**In Salle Froid**
+
+-   Rotor 19776 for 50 mL tubes
+
+-   Rotor 12154 for 2 mL tubes
+
+### 4. Workflow
+
+#### 4.1 Remove tissue
+
+1.  Keep samples on ice for all steps.
+2.  

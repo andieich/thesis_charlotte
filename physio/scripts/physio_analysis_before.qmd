@@ -1,0 +1,373 @@
+---
+title: "Physio Analysis"
+format: html
+editor: visual
+bibliography: references.bib
+---
+
+## Libraries
+
+```{r}
+library(tidyverse)
+library(here)
+library(janitor)
+library(googlesheets4)
+```
+
+## Load functions
+
+```{r}
+source(here("physio/scripts/functions.R"))
+```
+
+## Overview
+
+```{r}
+dat_ov <- read_sheet('https://docs.google.com/spreadsheets/d/1yCTnICWn2zVF5pQH5ARNhXM3eCZ1DsY1htO202Khowk/edit#gid=0', sheet = "1. Overview&24h")[,1:7] %>%
+  clean_names()
+```
+
+Check
+
+```{r}
+dat_ov %>% 
+  filter(!is.na(sample_id) & duplicated(sample_id))
+```
+
+## Area
+
+Get data
+
+```{r}
+dat_area <- read_sheet('https://docs.google.com/spreadsheets/d/1yCTnICWn2zVF5pQH5ARNhXM3eCZ1DsY1htO202Khowk/edit#gid=0', sheet = "4. Area") %>% 
+  clean_names()
+```
+
+Calculate Area by the increase in weigh between the first and second dip according to [@veal2010].
+
+$$
+A = 34.32 * \Delta w
+$$
+
+, where $A$ is the surface area in $cm^2$ and $\Delta w$ the the increase in weight in g.
+
+```{r}
+dat_area <- dat_area %>% 
+  get_area()
+```
+
+Some checks
+
+```{r}
+dat_area %>% 
+  filter(!is.na(sample_id) & duplicated(sample_id))
+```
+
+```{r}
+dat_area %>% 
+  pull(area) %>% 
+  range()
+```
+
+```{r}
+dat_area %>% 
+  pull(area) %>% 
+  hist(breaks = 25, main = "Surface area in cm^2")
+```
+
+## Symbiodiniaceae Counts
+
+```{r}
+dat_counts <- read_sheet('https://docs.google.com/spreadsheets/d/1yCTnICWn2zVF5pQH5ARNhXM3eCZ1DsY1htO202Khowk/edit#gid=0', sheet = "3. Counts") %>% 
+  clean_names()
+```
+
+Calculate the counts for each replicate (6 replicate counts per sample).
+
+The function calculates the overall counts per sample using the volume of the tissue slurry, the dilution before counting (1:3, `V_sw_added` and `V_sw_pipetted`), a second dilution step depending on the concentration (`V_zoox` and `V_sw`), and the volume used for counting (0.1 µL). It is then corrected for the surface area of the coral.
+
+```{r}
+dat_counts <- dat_counts %>% 
+  get_counts(data_overview = dat_ov, 
+             data_area = dat_area)
+```
+
+Checks
+
+```{r}
+dat_counts %>% 
+  group_by(sample_id) %>% 
+  summarise(n = n()) %>% 
+  filter(n != 6)
+```
+
+```{r}
+dat_counts %>% 
+  pull(count_per_cm2) %>% 
+  range()
+```
+
+```{r}
+dat_counts %>% 
+  pull(count_per_cm2) %>% 
+  hist(breaks = 25, main = "Symbiodiniaceae per cm^2")
+```
+
+## Chlorophyll a
+
+Get overview data
+
+```{r}
+dat_chl24h_ov <- read_sheet('https://docs.google.com/spreadsheets/d/1yCTnICWn2zVF5pQH5ARNhXM3eCZ1DsY1htO202Khowk/edit#gid=0', sheet = "1. Overview&24h") %>% 
+  clean_names()
+
+dat_chl48h_ov <- read_sheet('https://docs.google.com/spreadsheets/d/1yCTnICWn2zVF5pQH5ARNhXM3eCZ1DsY1htO202Khowk/edit#gid=0', sheet = "2. 48 h") %>% 
+  clean_names()
+```
+
+Read raw data from csv files and combine to one `data.frame` . Divide into data set after 24 h incubation and 48 h incubation time
+
+```{r}
+dat_chl <- read_all_files(here('physio/data/raw_data/before_bleaching'))
+
+dat_chl24h <-  dat_chl %>% 
+  filter(str_detect(filename, pattern = "24h"))
+
+dat_chl48h <-  dat_chl %>% 
+  filter(str_detect(filename, pattern = "48h"))
+
+
+nrow(dat_chl24h) + nrow(dat_chl48h) == nrow(dat_chl)# ok
+```
+
+Calculate chlorophyll concentration ($µg~mL^{-1}$) for both incubation times based on the formulas given in [@jeffrey1975]:
+
+$$
+\text{Chlorophyll}~a = 11.43 \frac{A_{663} - A_{750}}{PL}  – 0.64\frac{A_{630} - A_{750}}{PL}
+$$
+
+, where $A_{663}$, $A_{630}$, and $A_{750}$ is the absorption at 663, 630, and 750 nm, and $PL$ the path length of the cuvette in cm.
+
+The absorption at 750 nm is used as internal standard to correct for turbidity.
+
+-   For each batch, the mean of the blanks are subtracted for the absorption.
+
+-   The functions prints a summary table to assess if the blank values make sense. Check that they are not too high compared to the values of the samples
+
+-   A $PL$ of 1 cm is assumed
+
+-   The chlorophyll concentration is normalized for the area and has the unit $µg~cm^2$
+
+### 24 h data
+
+```{r}
+dat_chl24h <- dat_chl24h %>% 
+  get_chlorophyll(data_chlorophyll_overview = dat_chl24h_ov,
+                  data_overview = dat_ov,
+                  data_area = dat_area)
+```
+
+Checks
+
+```{r}
+dat_chl24h %>% 
+  group_by(sample_id) %>% 
+  summarise(n = n()) %>% 
+  filter(n != 2)
+```
+
+```{r}
+dat_chl24h %>% 
+  pull(chl_a_per_cm2) %>% 
+  range()
+```
+
+```{r}
+dat_chl24h %>% 
+  pull(chl_a_per_cm2) %>% 
+  hist(breaks = 25, main = "Chlorophyll concentration")
+```
+
+### 48 h data
+
+```{r}
+dat_chl48h <- dat_chl48h %>% 
+  get_chlorophyll(data_chlorophyll_overview = dat_chl48h_ov,
+                  data_overview = dat_ov,
+                  data_area = dat_area)
+```
+
+Checks
+
+```{r}
+dat_chl48h %>% 
+  group_by(sample_id) %>% 
+  summarise(n = n()) %>% 
+  filter(n != 2)
+```
+
+```{r}
+dat_chl48h %>% 
+  pull(chl_a_per_cm2) %>% 
+  range()
+```
+
+```{r}
+dat_chl48h %>% 
+  pull(chl_a_per_cm2) %>% 
+  hist(breaks = 25, main = "Chlorophyll concentration")
+```
+
+### Combine 24h and 48 h
+
+Compare
+
+```{r}
+dat_chl <- bind_rows(dat_chl24h %>% 
+                       mutate(extr_time = "24 h"),
+                     dat_chl48h %>% 
+                       mutate(extr_time = "48 h"))
+
+dat_chl %>% 
+  ggplot(aes(x = sample_id, y = chl_a_per_cm2))+
+  geom_point(aes(col = extr_time))+
+  theme_minimal()
+
+
+```
+
+Except for one measurement, the 48 h doesn't add much.
+
+Find out which one, print top 5
+
+```{r}
+dat_chl %>% 
+  filter(extr_time == "48 h") %>% 
+  arrange(-chl_a_per_cm2) %>% 
+  slice(1:5)
+```
+
+See both measurements
+
+```{r}
+dat_chl %>% 
+  filter(extr_time == "48 h", sample_id == "TSAS72")
+```
+
+Add 24 h and 48 h measurements. The means need to be added (variability will be lost), but not possible in another way because m1 of 24 h does not correspond to m1 48 h and vice versa.
+
+```{r}
+dat_chlS <- dat_chl %>% 
+  group_by(sample_id, extr_time) %>% 
+  summarise(chl_a_per_cm2 = mean(chl_a_per_cm2, na.rm = T)) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = extr_time, values_from = chl_a_per_cm2) %>% 
+  clean_names() %>% 
+  mutate(chl_a_per_cm2 = x24_h + x48_h) %>% 
+  select(sample_id, chl_a_per_cm2)
+
+```
+
+## Combine everything
+
+```{r}
+dat_all <- full_join(dat_counts %>% 
+                       select(-bag_number), #otherwise, 2x in combined data
+                     dat_chlS, 
+                     by = "sample_id")
+```
+
+More samples than needed were analysed (the bag with the samples before the actual sampling). Select only the "good" samples by comparing to the overview file
+
+```{r}
+dat_ov_all <- read.csv(here("overview/data/2024_04_02_charlottes_samples.csv"))
+```
+
+In this file, **`B`** is used for `t` to indicate that these samples (only 8 AL) were sampled *before* the actual t3 sampling. Adapt the `sample_id` in `dat_all` accordingly:
+
+```{r}
+dat_all <- dat_all %>% 
+  mutate(sample_id = ifelse(nchar(sample_id) == 6, paste0("B", sample_id, "P"),sample_id))
+```
+
+Only select `sample_id`s in `dat_all` if they occur in `dat_ov_all`:
+
+```{r}
+dat_all <- dat_all %>% 
+  filter(sample_id %in% dat_ov_all$sample_id)
+```
+
+All samples there?
+
+```{r}
+dat_ov_all$sample_id[which(!dat_ov_all$sample_id %in% dat_all$sample_id)]
+dat_all$sample_id[which(!dat_all$sample_id %in% dat_ov_all$sample_id)]
+```
+
+Yes
+
+Add metadata
+
+```{r}
+dat_all <- dat_all %>% 
+  get_info()
+```
+
+Save
+
+```{r}
+write.csv(dat_all, file = here("physio/data/clean/before_bleaching.csv"))
+```
+
+Some easypeasy plots
+
+```{r}
+dat_all %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2))+
+  geom_smooth(aes(col = site), method = "lm", se = F)+
+  geom_point(aes(col = site), shape = 1)+
+  labs(x = "# Symbiodiniaceae", y = "Chlorophyll a concentration")+
+  facet_wrap(~spec)+
+  theme_minimal()
+```
+
+```{r}
+dat_all %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2))+
+  geom_smooth(aes(col = spec), method = "lm", se = F)+
+  geom_point(aes(col = spec), shape = 1)+
+  labs(x = "# Symbiodiniaceae", y = "Chlorophyll a concentration")+
+  facet_wrap(~site)+
+  theme_minimal()
+```
+
+```{r}
+dat_all %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2))+
+  geom_smooth(aes(col = spec), method = "lm", se = F)+
+  geom_point(aes(col = spec), shape = 1)+
+  labs(x = "# Symbiodiniaceae", y = "Chlorophyll a concentration")+
+  theme_minimal()
+```
+
+More chlorophyll per symbiont in *Acropora* than in *Pocillopora*?
+
+```{r}
+dat_all %>% 
+  ggplot(aes(x = spec, y = chl_a_per_cm2))+
+  geom_point(aes(col = site), shape = 1, position = position_jitterdodge())+
+  stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", aes(col = site), linewidth = 1)+
+  labs(x = NULL, y = "Chlorophyll a concentration")+
+  theme_minimal()
+```
+
+Why are all *A. hya* from E2B \> \~2?
+
+```{r}
+dat_all %>% 
+  ggplot(aes(x = spec, y = count_per_cm2))+
+  geom_point(aes(col = site), shape = 1, position = position_jitterdodge())+
+   stat_summary(geom = "errorbar", fun.data = mean_se, position = "dodge", aes(col = site), linewidth = 1)+
+  labs(x = NULL, y = "# Symbiodiniaceae")+
+  theme_minimal() 
+```

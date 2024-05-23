@@ -1,0 +1,14 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+# Jupyter notebooks files
+.ipynb_checkpoints
+
+# big files
+/roboflow/images/
+/roboflow/models/
+
+*.ipynb
+**/.DS_Store

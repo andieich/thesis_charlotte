@@ -1,0 +1,76 @@
+---
+title: "Overview Charlotte"
+format: html
+editor: visual
+---
+
+Libraries
+
+```{r}
+library(here)
+library(tidyverse)
+
+get_info <- function(data){
+  data %>% 
+    mutate(site = substr(coral_id, 1,1),
+           depth = substr(coral_id, 2,2),
+           spec = substr(coral_id, 3,3),
+           size = substr(coral_id, 4,4)) %>% 
+    mutate(site = recode(site, 
+                         "T" = "Temae", 
+                         "E" = "E2B"),
+           depth = recode(depth,
+                          "D" = "20 m", 
+                          "S" = "5 m"),
+           spec = recode(spec, 
+                         "A" = "A. hya", 
+                         "P" = "P. ver",
+                         "M" = "P. mea"),
+           size = recode(size, 
+                         "L" = "Adult", 
+                         "S" = "Juvenile"))
+}
+```
+
+```{r}
+dat_overview <- read.csv(here("overview/data/2024_04_02_charlottes_samples.csv")) %>% 
+  get_info()
+```
+
+Test if all necessary samples in list
+
+```{r}
+dat_overview %>% 
+  group_by(site, depth, spec, size) %>% 
+  count()
+```
+
+Get file names of annotated images
+
+```{r}
+fn_annotated <- list.files(here('roboflow/Corals.v1-2024-03-01_colourchart.coco-segmentation/train'), pattern = ".jpg")
+```
+
+Make df from fn, get sampleID
+
+```{r}
+dat_annotated <- data.frame(filename = fn_annotated) %>% 
+  mutate(sample_id = paste0(substr(filename, 12, 18),'P'),
+         annotated = "yes")
+
+```
+
+Merge
+
+```{r}
+dat_overview <- left_join(dat_overview, dat_annotated, by = 'sample_id')
+```
+
+Test which are NA
+
+```{r}
+dat_overview %>% 
+  filter(is.na(annotated))
+```
+
+OK, only retagged samples.

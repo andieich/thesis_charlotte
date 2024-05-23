@@ -1,0 +1,57 @@
+---
+title: "checks"
+format: html
+editor: visual
+---
+
+## Libraries
+
+```{r}
+library(here)
+library(janitor)
+library(tidyverse)
+```
+
+Get data
+
+```{r}
+dat <- read.csv(here("overview/data/2024_04_02_charlottes_samples.csv")) %>% 
+  clean_names()
+```
+
+Get image names and cut to ID
+
+```{r}
+images <- list.files(here("roboflow/images/before_bleaching/2024_05_06_V5_raw/train"), pattern = ".JPG")
+
+```
+
+make df
+
+```{r}
+dat_images <- data.frame(filename = images) %>% 
+  mutate(sample_id = filename %>% substr(12, 18) %>% 
+  paste0("P"))
+```
+
+Which needed images (from `dat`) are not in `images`?
+
+```{r}
+dat <- dat %>% 
+  left_join(dat_images, by = "sample_id")
+```
+
+```{r}
+dat %>% 
+  filter(is.na(filename))
+```
+
+All there!
+
+Save to be used in Python
+
+```{r}
+write.csv(dat, 
+          here("roboflow/data/2024_05_06_before_bleaching_imagenames.csv"),
+          row.names = F)
+```
