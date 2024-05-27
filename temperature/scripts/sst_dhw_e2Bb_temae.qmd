@@ -268,7 +268,7 @@ plot_dhw <- dat_dhwplot %>%
                label = round(max_dhw,1)),
             vjust = 1.3)+
   labs(x = NULL, y = "DHW (°C weeks)")+
-  scale_x_date(breaks  = "2 months", date_labels = "%b", expand = c(0, 0))+
+  scale_x_date(breaks  = "1 month", date_labels = "%b", expand = c(0, 0))+
   scale_y_continuous(expand = c(0, 0), limits = c(0, 4)) +
   facet_wrap(~site)+
   scale_colour_viridis_c(option = "inferno")+
@@ -299,7 +299,7 @@ plot_temp <- dat_temp %>%
             col = "black", vjust = -0.3, hjust = -0.1)+#bleaching threshold
   geom_line(col = "grey", linewidth = .8) +
   labs(x = NULL, y = "SST (°C)")+
-  scale_x_date(breaks  = "2 months", date_labels = "%b", expand = c(0, 0))+
+  scale_x_date(breaks  = "1 month", date_labels = "%b", expand = c(0, 0))+
   scale_y_continuous(position = "right", expand = c(0, 0), limits = c(25, 31)) +
   facet_wrap(~site)+
   theme_minimal()+
@@ -307,7 +307,10 @@ plot_temp <- dat_temp %>%
     panel.border = element_rect(colour = "black", fill=NA),
     panel.grid = element_blank()
   )+ 
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
 
 plot_temp
 ```
@@ -315,8 +318,8 @@ plot_temp
 Combine
 
 ```{r}
-fig <- align_plots(plot_temp, 
-                   plot_dhw, 
+fig <- align_plots(plot_dhw,
+                   plot_temp, 
                    align="hv", 
                    axis="tblr")
 
@@ -330,8 +333,8 @@ Save
 ```{r}
 ggsave(filename = "fig_dhw.pdf",
        plot = fig,
-       path = here("plots"),
-       width = 20,
-       height = 8, 
+       path = here("temperature/plots"),
+       width = 25,
+       height = 10, 
        units = "cm")
 ```
