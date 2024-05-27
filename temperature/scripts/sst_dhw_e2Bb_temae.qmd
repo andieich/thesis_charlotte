@@ -1,0 +1,337 @@
+---
+title: "Download and plot SST"
+format: html
+editor: visual
+---
+
+### Load packages
+
+```{r}
+library(httr) #for downloads
+library(here) #for project folder structure
+library(tidyverse)
+library(pbapply) #for progress bars
+library(raster) #to load .nc files
+library(lubridate) #fast date change function
+library(sf) # mapping
+library(ggspatial) # mapping
+library(viridis) #plots
+library(patchwork) #plots
+library(ncdf4) # read files
+library(patchwork)
+library(geosphere)
+```
+
+### Load my functions
+
+```{r}
+source(here("temperature/scripts/Andi_DHW_functions.R"))
+```
+
+### Climatology
+
+Download global climatology data (MMM). Un-comment this code to download the data:
+
+```{r}
+# url_climatology = "https://www.star.nesdis.noaa.gov/pub/sod/mecb/crw/data/5km/v3.1_op/climatology/nc/ct5km_climatology_v3.1.nc"
+# 
+# httr::GET(url_climatology,
+#             httr::write_disk(here("temperature/data/climatology/ct5km_climatology_v3.1.nc"),
+#                              overwrite = T),
+#             httr::add_headers('Accept-Encoding' = 'gzip, deflate'),
+#             httr::progress("down"),
+#             httr::timeout(600))
+```
+
+Read the downloaded data
+
+```{r}
+climatology <- raster::brick(here("temperature/data/climatology/ct5km_climatology_v3.1.nc"),
+                       varname = "sst_clim_mmm") 
+```
+
+Get Polynesia basemap
+
+```{r}
+map_FrenchPolynesia <- st_read(dsn = here("temperature/data/maps/polynesia_map/PYF_adm0.shp")) %>%
+  st_as_sf()
+```
+
+### Download data
+
+I already downloaded the data, but just in case you need to do it again:
+
+The `download_all()` function downloads the data in batches of 3 years (as default value, other values are also possible)
+
+The data will be downloaded to the folder you specify
+
+You can either download the SST data for an area, then use the range of `lat1`/`lat2` and `lon1`/`lon2` values. If you just want one location, just enter the same values in `lat1`/`lat2` and `lon1`/`lon2` .
+
+One `.nc` file will be downloaded per 3 years.
+
+### Moorea
+
+Get box around Moorea of 15 km
+
+```{r}
+moorea_lat = -17.536273
+moorea_lon = -149.832730
+
+moorea_box = bounding_box(moorea_lat, moorea_lon, 15, 15)
+
+```
+
+Visualise
+
+This area will be downloaded\
+
+```{r}
+map_moorea <- ggplot() +
+  geom_sf(data = map_FrenchPolynesia,
+          fill = "antiquewhite",
+          col = "black")+
+  
+  coord_sf(xlim = c(moorea_box$lon_min, moorea_box$lon_max),
+           ylim = c(moorea_box$lat_min, moorea_box$lat_max))+
+  labs(x=NULL, y = NULL, title = "Moorea")+
+  theme_minimal()
+
+map_moorea
+```
+
+```{r}
+# download_all(lat1 = moorea_box$lat_min,
+#              lat2 = moorea_box$lat_max,
+#              lon1 = moorea_box$lon_min,
+#              lon2 = moorea_box$lon_max,
+#              day1 = "1985-04-01",#min date
+#              day2 = "2024-05-22",
+#              folder = here("temperature/data/ncdf/moorea_sst"))
+```
+
+Read
+
+```{r}
+dat_moorea_sst <- read_nc(here("temperature/data/ncdf/moorea_sst"),
+                      varname = "CRW_SST", 
+                      values_to = "sst") %>% 
+  filter(date > as.Date("2023-01-01"))
+```
+
+Similarly, you can download DHW:
+
+```{r}
+# download_all(lat1 = moorea_box$lat_min,
+#              lat2 = moorea_box$lat_max,
+#              lon1 = moorea_box$lon_min,
+#              lon2 = moorea_box$lon_max,
+#              day1 = "1985-04-01",
+#              day2 = "2024-05-22",
+#              parameter = "CRW_DHW",
+#              folder = here("temperature/data/ncdf/moorea_dhw"))
+```
+
+Read
+
+```{r}
+dat_moorea_dhw <- read_nc(here("temperature/data/ncdf/moorea_dhw"),
+                      varname = "CRW_DHW", 
+                      values_to = "dhw") %>% 
+  filter(date > as.Date("2023-01-01"))
+```
+
+Visualize dhw during the 2024 bleaching to get an idea of the data
+
+```{r}
+dat_moorea_dhw %>% 
+  mutate(year = year(date)) %>% 
+  filter(year == 2024) %>% 
+  group_by(lat, lon) %>% 
+  summarise(dhw_max = max(dhw, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot() +
+  geom_raster(aes(y = lat, x = lon, fill = dhw_max)) +
+  geom_sf(data = map_FrenchPolynesia,
+          fill = "antiquewhite",
+          col = "black")+
+  coord_sf(xlim = c(moorea_box$lon_min, moorea_box$lon_max),
+           ylim = c(moorea_box$lat_min, moorea_box$lat_max))+
+  labs(x=NULL, y = NULL, title = "DHW Moorea 2024")+
+  scale_fill_viridis()+
+  theme_minimal()
+  
+```
+
+Extract data for Temae and E2B
+
+```{r}
+dat_dhw_e2b <- dat_moorea_dhw %>% 
+  filter(!is.na(dhw)) %>% 
+  find_closest_point(lat = -17.48218929572189,
+                     lon = -149.84235388934127) %>% 
+  mutate(site = "E2B")
+
+dat_dhw_temae <- dat_moorea_dhw %>% 
+  filter(!is.na(dhw)) %>% 
+  find_closest_point(lat = -17.50232387727692,
+                     lon = -149.76201551992233) %>% 
+  mutate(site = "Temae")
+
+
+dat_sst_e2b <- dat_moorea_sst %>% 
+  filter(!is.na(sst)) %>% 
+  find_closest_point(lat = -17.48218929572189,
+                     lon = -149.84235388934127) 
+
+dat_sst_temae <- dat_moorea_sst %>% 
+  filter(!is.na(sst)) %>% 
+  find_closest_point(lat = -17.50232387727692,
+                     lon = -149.76201551992233) 
+#combine
+
+dat_temp <- left_join(bind_rows(dat_dhw_temae, dat_dhw_e2b),
+                      bind_rows(dat_sst_temae, dat_sst_e2b),
+                      by = c("lat","lon","date"))
+```
+
+MMM
+
+```{r}
+climatology_moorea <- subset_ncdf(climatology,
+                          lat_min = moorea_box$lat_min,
+                          lat_max = moorea_box$lat_max,
+                          lon_min = moorea_box$lon_min,
+                          lon_max = moorea_box$lon_max)
+
+
+dat_mm_moorea <- climatology_moorea %>% 
+  raster::as.data.frame(xy = T) %>% 
+  filter(!is.na(mmm))
+
+dat_mmm_e2b <-  dat_mm_moorea %>% 
+  find_closest_point(lat = -17.48218929572189,
+                     lon = -149.84235388934127) %>% 
+  mutate(site = "E2B")
+
+dat_mm_temae <-  dat_mm_moorea %>% 
+  find_closest_point(lat = -17.50232387727692,
+                     lon = -149.76201551992233) %>% 
+  mutate(site = "Temae")
+
+
+dat_mmm <-  bind_rows(dat_mmm_e2b, dat_mm_temae)#same mmm
+```
+
+Plot
+
+```{r}
+#get max dhw
+dat_max_dhw <- dat_temp %>% 
+  mutate(year = year(date)) %>% 
+  filter(year > 2023) %>% 
+  group_by(site) %>% 
+  summarise(max_dhw = max(dhw, na.rm = T))
+
+
+# make extra df for dhw for plotting
+
+dat_dhwplot_temae <- dat_temp %>% 
+  filter(site == "Temae") 
+
+dat_dhwplot_temae <- as.data.frame(approx(dat_dhwplot_temae$date, 
+                       dat_dhwplot_temae$dhw, 
+                       seq(min(dat_dhwplot_temae$date), 
+                           max(dat_dhwplot_temae$date),
+                           len = 5000)))%>%
+  mutate(site = "Temae")
+
+dat_dhwplot_e2b<- dat_temp %>% 
+  filter(site == "E2B") 
+
+dat_dhwplot_e2b <- as.data.frame(approx(dat_dhwplot_e2b$date, 
+                       dat_dhwplot_e2b$dhw, 
+                       seq(min(dat_dhwplot_e2b$date), 
+                           max(dat_dhwplot_e2b$date),
+                           len = 5000))) %>% 
+  mutate(site = "E2B")
+
+dat_dhwplot <- bind_rows(dat_dhwplot_temae, dat_dhwplot_e2b)
+
+plot_dhw <- dat_dhwplot %>% 
+  ggplot(aes(x = x, y = y))+
+  geom_vline(xintercept = as.Date("2024-01-01"), col = "grey", linetype = "11")+
+  geom_segment(aes(xend = x, yend = 0, col = y), linewidth = 0.1, show.legend = F) +
+ # geom_area(col = "grey20", fill = NA)+
+  geom_text(data = dat_max_dhw, 
+            aes(x = as.Date("2024-05-01"),
+                y = max_dhw, 
+               label = round(max_dhw,1)),
+            vjust = 1.3)+
+  labs(x = NULL, y = "DHW (°C weeks)")+
+  scale_x_date(breaks  = "2 months", date_labels = "%b", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 4)) +
+  facet_wrap(~site)+
+  scale_colour_viridis_c(option = "inferno")+
+  annotate("text", x = as.Date("2023-01-01"), y = 4, label = "2023", 
+           vjust = 2, hjust = -.5,
+           fontface = "italic", col = "grey30")+
+  annotate("text", x = as.Date("2024-01-01"), y = 4, label = "2024", 
+           vjust = 2, hjust = -.5,
+           fontface = "italic", col = "grey30")+
+  theme_minimal()+
+  theme(
+    panel.border = element_rect(colour = "black", fill=NA),
+    panel.grid = element_blank()
+  )+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot_dhw
+```
+
+```{r}
+plot_temp <- dat_temp %>% 
+  ggplot(aes(x = date, y = sst))+
+  geom_hline(data = dat_mmm, aes(yintercept = mmm + 1), col = "black")+#bleaching threshold
+  geom_text(data = dat_mmm, 
+            aes(y = mmm + 1, 
+                x = as.Date(-Inf), 
+                label = paste(round(mmm+1, 1),"°C")), 
+            col = "black", vjust = -0.3, hjust = -0.1)+#bleaching threshold
+  geom_line(col = "grey", linewidth = .8) +
+  labs(x = NULL, y = "SST (°C)")+
+  scale_x_date(breaks  = "2 months", date_labels = "%b", expand = c(0, 0))+
+  scale_y_continuous(position = "right", expand = c(0, 0), limits = c(25, 31)) +
+  facet_wrap(~site)+
+  theme_minimal()+
+  theme(
+    panel.border = element_rect(colour = "black", fill=NA),
+    panel.grid = element_blank()
+  )+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot_temp
+```
+
+Combine
+
+```{r}
+fig <- align_plots(plot_temp, 
+                   plot_dhw, 
+                   align="hv", 
+                   axis="tblr")
+
+fig <- ggdraw(fig[[1]]) + draw_plot(fig[[2]])
+
+fig
+```
+
+Save
+
+```{r}
+ggsave(filename = "fig_dhw.pdf",
+       plot = fig,
+       path = here("plots"),
+       width = 20,
+       height = 8, 
+       units = "cm")
+```

@@ -12,3 +12,6 @@
 
 *.ipynb
 **/.DS_Store
+
+#ignore MMM
+/temperature/data/climatology/
