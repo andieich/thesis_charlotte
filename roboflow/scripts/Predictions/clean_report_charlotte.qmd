@@ -9,6 +9,7 @@ library(here)
 library(tidyverse)
 library(grDevices) #HSV conversion
 library(htmlTable)
+library(see)
 ```
 
 ```{r}
@@ -44,6 +45,13 @@ d_pigm <- d_pigm %>%
 
 ```{r}
 cols_spec <-  c("#E69F00", "#56B4E9", "#009E73")
+
+cols <- c("Red" = "darkred", "Green" = "darkgreen", "Blue" = "darkblue",
+          "red_chromatic" = "darkred", "green_chromatic" = "darkgreen", "blue_chromatic" = "darkblue")
+
+```
+
+```{r}
 
 fig_ov <- d_pigm %>% 
   mutate(spec = dplyr::recode(spec, 
@@ -83,7 +91,7 @@ plot_RGB_log <- d_pigm %>%
   scale_colour_manual(values = cols, name = NULL)+
   labs(x = "Value", y = expression("log[Chlorophyll a (µg "*cm^2*")]"))+
   theme_minimal()+
-  theme(legend.position = "bottom", 
+  theme(legend.position = "none", 
         strip.text.x = element_text(face = "italic"))
 
 plot_RGB_log
@@ -93,6 +101,7 @@ ggsave(filename = "plot_RGB_log.png", plot = plot_RGB_log, path = here("roboflow
 ```{r}
 
 cols_hsv <- c("#0072B2", "#CC79A7", "#F0E442")
+
 plot_HSV_log <- d_pigm %>% 
   mutate(spec = dplyr::recode(spec, 
                               "A. hya" = "A. hyacinthus",
@@ -111,7 +120,7 @@ plot_HSV_log <- d_pigm %>%
   scale_colour_manual(values = cols_hsv, name = NULL)+
   labs(x = "Value", y = expression("log[Chlorophyll a (µg "*cm^2*")]"))+
   theme_minimal()+
-  theme(legend.position = "bottom", 
+  theme(legend.position = "none", 
         strip.text.x = element_text(face = "italic"))
 
 plot_HSV_log
@@ -124,7 +133,7 @@ Only Acro
 ```{r}
 d_pigm_AL <- d_pigm %>% 
   filter(spec == "A. hya") %>% 
-  select(-spec)
+  select(-spec) %>% 
   select_if(~!is.factor(.)) %>% 
   select_if(~!is.character(.))
 ```
@@ -203,7 +212,7 @@ plot_pred <- d_pigm_AL %>%
   pivot_longer(pred_glm:pred_lm, names_to = "Model") %>% 
    mutate(Model = dplyr::recode(Model, 
                               "pred_glm" = "GLM",
-                              "pred_lm" = "linear model")) %>%
+                              "pred_lm" = "Linear model")) %>%
   ggplot(aes(x = value, y = chl_a_per_cm2))+
   geom_abline(slope = 1,intercept = 0, linetype = "11", col = "grey")+
   geom_point(shape = 21, aes(fill = Model), alpha = .8)+
@@ -250,7 +259,7 @@ d_pigm_b_stat_AL %>%
   geom_point(position = position_jitter(.2), shape = 21)+
   facet_wrap(~Parameter, scales = "free", , labeller = label_parsed)+
   labs(x = NULL, y = NULL)+
-  scale_fill_manual(values = c("skyblue", "darkorange"))+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9"))+
   theme_minimal()+
   theme(legend.position = "None")
 
@@ -258,7 +267,50 @@ d_pigm_b_stat_AL %>%
 ```
 
 ```{r}
-plot_bleaching_state <- d_pigm_b_stat_AL %>% 
+
+dat_plot_bleaching_stateA <- d_pigm_b_stat_AL %>% 
+  mutate(state_short = dplyr::recode(state_short, 
+                              "B" = "Bleached",
+                              "H" = "Not bleached")) %>% 
+  mutate(pred_glm = predict(m_glm_AL, newdata = ., type = "response"),
+         pred_lm = exp(predict(m_lm_AL, newdata = .))) 
+  
+  
+  
+  
+plot_bleaching_stateA <- dat_plot_bleaching_stateA %>% 
+  pivot_longer(cols = c(pred_glm:pred_lm, chl_a_per_cm2), names_to = "Model") %>% 
+  mutate(Model = dplyr::recode(Model, 
+                               "pred_glm" = "GLM",
+                              "pred_lm" = "Linear model",
+                              "chl_a_per_cm2" = "Measured")) %>% 
+  mutate(Model = factor(Model, levels = c("Measured", "GLM", "Linear model"))) %>% 
+  ggplot(aes(x = state_short, y = value))+
+  geom_point(aes(fill = Model),shape = 21, position = position_jitterdodge(jitter.width = .2, dodge.width = .5))+
+  labs(y = expression("Chlorophyll a (µg "*cm^2*")"), x = NULL, tag = "A")+
+ scale_fill_manual(values = c("#009E73","#E69F00", "#56B4E9"), name = NULL)+
+  
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+plot_bleaching_stateA
+```
+
+Results Model
+
+```{r}
+# chl
+m_state_chl <- glm(chl_a_per_cm2 ~ state_short, data = dat_plot_bleaching_stateA, family = Gamma())
+m_state_glm <- glm(pred_glm ~ state_short, data = dat_plot_bleaching_stateA, family = Gamma())
+m_state_lm <- glm(pred_lm ~ state_short, data = dat_plot_bleaching_stateA, family = Gamma())
+
+anova(m_state_chl)
+anova(m_state_glm)
+anova(m_state_lm)
+```
+
+```{r}
+plot_bleaching_stateB <- d_pigm_b_stat_AL %>% 
   pivot_longer(cols = c(Red:Blue, brightness), names_to = "Parameter") %>% 
   mutate(state_short = dplyr::recode(state_short, 
                               "B" = "Bleached",
@@ -266,15 +318,24 @@ plot_bleaching_state <- d_pigm_b_stat_AL %>%
   mutate(Parameter = factor(Parameter, levels = c("Red", "Green", "Blue", "brightness"))) %>% 
   
   ggplot(aes(y = value, x = chl_a_per_cm2, fill = state_short))+
-  geom_point(position = position_jitter(.2), shape = 21)+
+  geom_point(shape = 21)+
   facet_wrap(~Parameter, scales = "free", , labeller = label_parsed)+
-  labs(y = "", x = expression("Chlorophyll a (µg "*cm^2*")"))+
-  scale_fill_manual(values = c("skyblue", "darkorange"), name = "")+
+  labs(y = "", x = expression("Chlorophyll a (µg "*cm^2*")"), tag = "B")+
+  scale_fill_manual(values = c("#F4EDCA", "#4E84C4"), name = "")+
   theme_minimal()+
   theme(legend.position = "bottom")
-plot_bleaching_state
+plot_bleaching_stateB
 ```
 
 ```{r}
-ggsave(filename = "plot_bleaching_state.png", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =12,units = "cm", scale = 0.7)
+
+library(patchwork)
+
+
+plot_bleaching_state <- plot_bleaching_stateA + plot_bleaching_stateB +
+  plot_layout(widths = c(1, 2))
+
+plot_bleaching_state
+
+ggsave(filename = "plot_bleaching_state.png", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =10,units = "cm")
 ```
