@@ -1,0 +1,372 @@
+---
+title: "Calculate Indices"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(here)
+library(tidyverse)
+library(grDevices) #HSV conversion
+```
+
+```{r}
+calculate_indices <- function(data){
+  data %>% 
+    mutate(red_chromatic = Red/(Red + Green + Blue),
+  green_chromatic = Green/(Red + Green + Blue),
+  blue_chromatic = Blue/(Red + Green + Blue),
+  hue = rgb2hsv(Red,Green,Blue)[1,],
+  saturation = rgb2hsv(Red,Green,Blue)[2,],
+  brightness = rgb2hsv(Red,Green,Blue)[3,],
+  GMR = Green - Red,
+  GRRI = Green / Red,
+  RGRI = Red / Green,
+  GLI = (2* Green - Red - Blue) / (2 * Green + Red + Blue),
+  VARI = (Green - Red) / (Red + Green + Blue),
+  NGRDI = (green_chromatic - red_chromatic) / (green_chromatic + red_chromatic),
+  I_KAW = (Red - Blue) / (Red + Blue),
+  ExR = 1.4*red_chromatic - green_chromatic,
+  ExB = 1.4*blue_chromatic - green_chromatic,
+  ExG = 2*green_chromatic - red_chromatic - green_chromatic,
+  ExGR = ExG - ExR,
+  GRVI = (Green - Red) / (Green + Red),
+  DGCI = ((hue - 60) / 60 + (1 - saturation) + (1 - brightness))/3)
+}
+```
+
+Get data
+
+```{r}
+d_pigm <- read.csv(here("roboflow/data/clean/2024_05_28_pigmentation_nogroup.csv"))
+
+d_pigm <- d_pigm %>% 
+  select(chl_a_per_cm2, Red:Blue, spec)
+
+```
+
+Overview
+
+```{r}
+library(see)
+
+
+```
+
+Calculate indices
+
+```{r}
+d_pigm <- d_pigm %>% 
+  calculate_indices()
+```
+
+Plots
+
+```{r}
+cols <- c("Red" = "darkred", "Green" = "darkgreen", "Blue" = "darkblue",
+          "red_chromatic" = "darkred", "green_chromatic" = "darkgreen", "blue_chromatic" = "darkblue")
+```
+
+##### RGB
+
+```{r}
+plot_RGB <- d_pigm %>% 
+  pivot_longer(Red:Blue, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~   spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB
+```
+
+##### RGB log
+
+```{r}
+plot_RGB_log <- d_pigm %>% 
+  mutate(spec = dplyr::recode(spec, 
+                              "A. hya" = "A. hyacinthus",
+                              "P. mea" = "P. meandrina",
+                              "P. ver" = "P. verrucosa")) %>%
+  pivot_longer(Red:Blue, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm", se = F)+
+  facet_grid(colour ~    spec)+
+  scale_colour_manual(values = cols, name = NULL)+
+  labs(x = "Value", y = expression("log[Chlorophyll a (µg "*cm^2*")]"))+
+  theme_minimal()+
+  theme(legend.position = "bottom", 
+        strip.text.x = element_text(face = "italic"))
+
+plot_RGB_log
+ggsave(filename = "plot_RGB_log.png", plot = plot_RGB_log, path = here("roboflow/plots"),width = 25, height =15,units = "cm", scale = 0.7)
+```
+
+chrom RGB
+
+```{r}
+plot_RGB_chrom <- d_pigm %>% 
+  pivot_longer(red_chromatic:blue_chromatic, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~    spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB_chrom
+```
+
+chrom RGB log
+
+```{r}
+plot_RGB_chrom_log <- d_pigm %>% 
+  pivot_longer(red_chromatic:blue_chromatic, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~  spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB_chrom_log
+```
+
+HSV
+
+```{r}
+plot_HSV <- d_pigm %>% 
+  pivot_longer(hue:brightness, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(spec ~   parameter, scales = "free")+
+  theme_minimal()
+
+plot_HSV
+```
+
+Indices 1
+
+```{r}
+plot_ind1 <- d_pigm %>% 
+  pivot_longer(GMR:RGRI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid( ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind1
+```
+
+```{r}
+plot_ind2 <- d_pigm %>% 
+  pivot_longer(GLI:NGRDI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid( ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind2
+```
+
+```{r}
+plot_ind3 <- d_pigm %>% 
+  pivot_longer(I_KAW:ExB, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid( ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind3
+```
+
+```{r}
+plot_ind4 <- d_pigm %>% 
+  pivot_longer(ExG:DGCI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid( ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind4
+```
+
+```{r}
+d_pigmC <- d_pigm %>% 
+  select_if(~!is.factor(.)) %>% 
+  select_if(~!is.character(.))
+
+
+cor(d_pigmC[-1], d_pigmC$chl_a_per_cm2) %>% 
+  as.data.frame() %>% 
+  arrange(V1)
+```
+
+```{r}
+cor(d_pigmC[-1], log(d_pigmC$chl_a_per_cm2)) %>% 
+  as.data.frame() %>% 
+  arrange(V1)
+```
+
+```{r}
+d_pigmC_AL <- d_pigm %>% 
+  filter(spec == "A. hya") %>% 
+  select_if(~!is.factor(.)) %>% 
+  select_if(~!is.character(.))
+
+d_pigmC_PL <- d_pigm %>% 
+  filter(spec == "P. ver") %>% 
+  select_if(~!is.factor(.)) %>% 
+  select_if(~!is.character(.))
+
+d_pigmC_PM <- d_pigm %>% 
+  filter(spec == "P. mea") %>% 
+  select_if(~!is.factor(.)) %>% 
+  select_if(~!is.character(.))
+```
+
+```{r}
+cor(d_pigmC_AL[-1], log(d_pigmC_AL$chl_a_per_cm2)) %>% 
+  as.data.frame() %>% 
+  arrange(V1)
+```
+
+```{r}
+cor(d_pigmC_PL[-1], log(d_pigmC_PL$chl_a_per_cm2)) %>% 
+  as.data.frame() %>% 
+  arrange(V1)
+```
+
+```{r}
+cor(d_pigmC_PM[-1], log(d_pigmC_PM$chl_a_per_cm2)) %>% 
+  as.data.frame() %>% 
+  arrange(V1)
+```
+
+Random forest
+
+```{r}
+library(randomForest)
+rf_fit <- randomForest(chl_a_per_cm2 ~ ., data=d_pigm %>% 
+                             filter(spec == "A. hya") %>% 
+                             select(-spec), ntree=1000,
+                       keep.forest=FALSE, importance=TRUE)
+rf_fit#9.24%
+
+# AL 25.14
+# PM -17.47
+# PL 8.76
+```
+
+```{r}
+rf_fit_log <- randomForest(log(chl_a_per_cm2) ~ ., data=d_pigm , ntree=1000,
+                       keep.forest=FALSE, importance=TRUE)
+rf_fit_log#23.62%
+
+# AL alone 26.13
+#PM -10.04
+#PL : -3.5
+```
+
+```{r}
+m_glm_AL <- glm(chl_a_per_cm2 ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "A. hya"), 
+             family = Gamma())
+
+m_lm_AL <- lm(log(chl_a_per_cm2) ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "A. hya"))
+
+
+m_glm_PL <- glm(chl_a_per_cm2 ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "P. ver"), 
+             family = Gamma())
+
+m_lm_PL <- lm(log(chl_a_per_cm2) ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "P. ver"))
+
+m_glm_ML <- glm(chl_a_per_cm2 ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "P. mea"), 
+             family = Gamma())
+
+m_lm_ML <- lm(log(chl_a_per_cm2) ~ Green + Blue , 
+             data=d_pigm %>% 
+               filter(spec == "P. mea"))
+
+```
+
+```{r}
+AIC(m_glm_AL, m_lm_AL)
+summary(m_lm_AL)#0.3284
+```
+
+```{r}
+AIC(m_glm_PL, m_lm_PL)
+summary(m_lm_PL)#0.1542
+```
+
+```{r}
+AIC(m_glm_ML, m_lm_ML)
+summary(m_lm_ML)#0.04522
+```
+
+Lets predict
+
+```{r}
+#pred_AL <- predict(m_glm_AL, type = "response")
+pred_AL <- exp(predict(m_lm_AL))
+pred_PL <- exp(predict(m_lm_PL))
+pred_ML <- exp(predict(m_lm_ML))
+
+d_pigm_AL <- d_pigm %>% 
+  filter(spec == "A. hya") %>% 
+  mutate(pred = pred_AL)
+
+d_pigm_PL <- d_pigm %>% 
+  filter(spec == "P. ver") %>% 
+  mutate(pred = pred_PL)
+
+d_pigm_ML <- d_pigm %>% 
+  filter(spec == "P. mea") %>% 
+  mutate(pred = pred_ML)
+
+dat_pred <- bind_rows(d_pigm_AL, d_pigm_PL, d_pigm_ML)
+
+```
+
+```{r}
+dat_pred %>% 
+  ggplot(aes(x = pred, y = chl_a_per_cm2))+
+  geom_point()+
+  geom_abline(slope = 1, intercept = 0)+
+  facet_grid(~spec) + 
+  theme_minimal()
+
+
+```
+
+Overall only green
+
+```{r}
+lm_all <- lm(log(chl_a_per_cm2) ~ Green, 
+             data = d_pigm)
+
+summary(lm_all)
+```
+
+```{r}
+
+```

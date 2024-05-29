@@ -1,0 +1,371 @@
+---
+title: "Calculate Indices"
+format: html
+editor: visual
+---
+
+```{r}
+
+library(here)
+library(tidyverse)
+library(grDevices) #HSV conversion
+```
+
+```{r}
+calculate_indices <- function(data){
+  data %>% 
+    mutate(red_chromatic = Red/(Red + Green + Blue),
+  green_chromatic = Green/(Red + Green + Blue),
+  blue_chromatic = Blue/(Red + Green + Blue),
+  hue = rgb2hsv(Red,Green,Blue)[1,],
+  saturation = rgb2hsv(Red,Green,Blue)[2,],
+  brightness = rgb2hsv(Red,Green,Blue)[3,],
+  GMR = Green - Red,
+  GRRI = Green / Red,
+  RGRI = Red / Green,
+  GLI = (2* Green - Red - Blue) / (2 * Green + Red + Blue),
+  VARI = (Green - Red) / (Red + Green + Blue),
+  NGRDI = (green_chromatic - red_chromatic) / (green_chromatic + red_chromatic),
+  I_KAW = (Red - Blue) / (Red + Blue),
+  ExR = 1.4*red_chromatic - green_chromatic,
+  ExB = 1.4*blue_chromatic - green_chromatic,
+  ExG = 2*green_chromatic - red_chromatic - green_chromatic,
+  ExGR = ExG - ExR,
+  GRVI = (Green - Red) / (Green + Red),
+  DGCI = ((hue - 60) / 60 + (1 - saturation) + (1 - brightness))/3)
+}
+```
+
+Get data
+
+```{r}
+d_pigm <- read.csv(here("roboflow/data/clean/2024_05_28_pigmentation_NC.csv"))
+
+d_pigm <- d_pigm %>% 
+  mutate(brightness_group = factor(brightness_group, levels = c("dark", "mid", "bright"))) %>% 
+  select(chl_a_per_cm2, brightness_group, Red:Blue, spec)
+
+```
+
+Calculate indices
+
+```{r}
+d_pigm <- d_pigm %>% 
+  calculate_indices()
+```
+
+Plots
+
+```{r}
+cols <- c("Red" = "darkred", "Green" = "darkgreen", "Blue" = "darkblue",
+          "red_chromatic" = "darkred", "green_chromatic" = "darkgreen", "blue_chromatic" = "darkblue")
+```
+
+##### RGB
+
+```{r}
+plot_RGB <- d_pigm %>% 
+  pivot_longer(Red:Blue, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~  brightness_group + spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB
+```
+
+##### RGB log
+
+```{r}
+plot_RGB_log <- d_pigm %>% 
+  pivot_longer(Red:Blue, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~  brightness_group + spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB_log
+```
+
+chrom RGB
+
+```{r}
+plot_RGB_chrom <- d_pigm %>% 
+  pivot_longer(red_chromatic:blue_chromatic, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~  brightness_group + spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB_chrom
+```
+
+chrom RGB log
+
+```{r}
+plot_RGB_chrom_log <- d_pigm %>% 
+  pivot_longer(red_chromatic:blue_chromatic, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(colour ~ brightness_group + spec, scales = "free")+
+  scale_colour_manual(values = cols)+
+  theme_minimal()
+
+plot_RGB_chrom_log
+```
+
+HSV
+
+```{r}
+plot_HSV <- d_pigm %>% 
+  pivot_longer(hue:brightness, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(spec ~  brightness_group + parameter, scales = "free")+
+  theme_minimal()
+
+plot_HSV
+```
+
+Indices 1
+
+```{r}
+plot_ind1 <- d_pigm %>% 
+  pivot_longer(GMR:RGRI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(brightness_group ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind1
+```
+
+```{r}
+plot_ind2 <- d_pigm %>% 
+  pivot_longer(GLI:NGRDI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(brightness_group ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind2
+```
+
+```{r}
+plot_ind3 <- d_pigm %>% 
+  pivot_longer(I_KAW:ExB, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(brightness_group ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind3
+```
+
+```{r}
+plot_ind4 <- d_pigm %>% 
+  pivot_longer(ExG:DGCI, names_to = "parameter") %>% 
+  ggplot(aes(x = value, y = chl_a_per_cm2, col = parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm")+
+  facet_grid(brightness_group ~  parameter + spec, scales = "free")+
+  theme_minimal()
+
+plot_ind4
+```
+
+```{r}
+library(tidymodels)  
+
+# Helper packages
+library(readr)       # for importing data
+library(vip)         # for variable importance plots
+```
+
+Split
+
+<https://www.tidymodels.org/start/case-study/>
+
+```{r}
+#make df for models
+d_pigm_model <- d_pigm %>% 
+  select(-sample_id, -t, -site, -depth, -size, -replicate) %>% 
+  relocate(chl_a_per_cm2)
+
+
+
+set.seed(123)
+splits      <- initial_split(d_pigm_model, strata = chl_a_per_cm2)
+
+p_pig_other <- training(splits)
+p_pig_test  <- testing(splits)
+
+set.seed(234)
+
+val_set <- validation_split(p_pig_other, 
+                            strata = chl_a_per_cm2, 
+                            prop = 0.80)
+```
+
+```{r}
+cores <- parallel::detectCores()
+cores
+```
+
+```{r}
+rf_mod <-  rand_forest(trees = 1000, mtry = 3) %>% 
+  set_engine("randomForest", num.threads = cores) %>% 
+  set_mode("regression") %>% 
+  set_engine("ranger")
+```
+
+```{r}
+preds <- names(p_pig_other)[-1]
+
+rf_xy_fit <- 
+  rf_mod %>%
+  set_engine("ranger") %>%
+  fit_xy(
+    x = p_pig_other[, preds],
+    y = p_pig_other$chl_a_per_cm2
+  )
+```
+
+```{r}
+rf_xy_fit
+```
+
+```{r}
+rand_forest(mode = "regression", mtry = .preds(), trees = 1000) %>%
+  set_engine("randomForest") %>%
+  fit(
+    chl_a_per_cm2 ~ .,
+    data = p_pig_other
+  )
+```
+
+```{r}
+d_pigm_PM_d <- d_pigm %>% 
+  filter(spec == "P. mea", brightness_group == "dark") %>% 
+  select(-spec)
+
+
+
+mod_PM <-  glm(chl_a_per_cm2 ~ Red + Green + Blue + red_chromatic + green_chromatic + blue_chromatic + hue + saturation + brightness + GMR + GRRI + RGRI + GLI + VARI + NGRDI + I_KAW + ExR + ExB + ExG + ExGR + GRVI + DGCI, data = d_pigm_PM_d, family = Gamma())
+
+
+
+
+mod_PM_red <- stats::step(mod_PM)
+
+summary(mod_PM_red)
+
+with(summary(mod_PM_red), 1 - deviance/null.deviance)
+
+#bright 0.22
+#mid 0.2211945
+# d 0.2348778
+```
+
+```{r}
+d_pigm_AL_d <- d_pigm %>% 
+  filter(spec == "A. hya", brightness_group == "dark") %>% 
+  select(-spec)
+
+d_pigm_AL_b <- d_pigm %>% 
+  filter(spec == "A. hya", brightness_group == "bright") %>% 
+  select(-spec)
+
+d_pigm_AL_m <- d_pigm %>% 
+  filter(spec == "A. hya", brightness_group == "mid") %>% 
+  select(-spec)
+
+
+mod_AL <-  glm(chl_a_per_cm2 ~ Red + Green + Blue + red_chromatic + green_chromatic + blue_chromatic + hue + saturation + brightness + GMR + GRRI + RGRI + GLI + VARI + NGRDI + I_KAW + ExR + ExB + ExG + ExGR + GRVI + DGCI, data = d_pigm_AL_b, family = Gamma())
+
+summary(mod_AL)
+
+mod_AL_red <-  glm(chl_a_per_cm2 ~  I_KAW , data = d_pigm_AL_m, family = Gamma())
+
+
+
+summary(mod_AL_red)
+
+with(summary(mod_AL_red), 1 - deviance/null.deviance)
+
+#B  0.06494807
+#D 0.0755338
+#M 0.12
+```
+
+```{r}
+d_pigm_PM_d <- d_pigm %>% 
+  filter(spec == "P. mea", brightness_group == "dark") %>% 
+  select(-spec)
+
+
+
+mod_PM <-  glm(chl_a_per_cm2 ~ Red + Green + Blue + red_chromatic + green_chromatic + blue_chromatic + hue + saturation + brightness + GMR + GRRI + RGRI + GLI + VARI + NGRDI + I_KAW + ExR + ExB + ExG + ExGR + GRVI + DGCI, data = d_pigm_PM_d, family = Gamma())
+
+
+
+
+mod_PM_red <- stats::step(mod_PM)
+
+summary(mod_PM_red)
+
+with(summary(mod_PM_red), 1 - deviance/null.deviance)
+
+#bright 0.22
+#mid 0.2211945
+# d 0.2348778
+```
+
+```{r}
+library(pls)
+model <- plsr(chl_a_per_cm2 ~ Red + Green + Blue + red_chromatic + green_chromatic + blue_chromatic + hue + saturation + brightness + GMR + GRRI + RGRI + GLI + VARI + NGRDI + I_KAW + ExR + ExB + ExG + ExGR + GRVI + DGCI, data = d_pigm_PM_d,  validation="CV")
+
+summary(model)
+```
+
+```{r}
+pred_pls <- predict(model)
+
+
+d_pigm_PM_d$pred = as.numeric(pred_pls)
+
+d_pigm_PM_d %>% 
+  ggplot(mapping = aes(x = pred,
+                       y = chl_a_per_cm2))+
+  geom_point()
+```
+
+```{r}
+validationplot(model)
+```
+
+```{r}
+
+
+pred_PM_ <- predict(mod_PM_red, type = "response")
+
+d_pigm_PM$pred <- pred_PM
+
+d_pigm_PM %>% 
+  ggplot(aes(x = pred,y = chl_a_per_cm2))+
+  geom_point()+
+  +#facet_wrap(~brightness_group)+
+  geom_abline(intercept =  0,slope = 1)
+
+```

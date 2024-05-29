@@ -1,0 +1,200 @@
+---
+title: "Clean data"
+format: html
+editor: visual
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(arrow)
+library(grDevices) #HSV conversion
+
+get_sample_id <- function(data){
+  keep <- names(data)
+  data <- data %>% 
+    separate(filename, c("y","m","d", "sample_id", "orig"), sep = "_", remove = F) %>% 
+    mutate(date = paste(y, m, d, sep = "-"),
+           sample_id = paste0(sample_id,"P")) %>% 
+    mutate(date = as_date(date)) %>% 
+    dplyr::select("sample_id", "date",  !!enquo(keep))
+}
+
+update_sample_id <- function(data){
+  
+  # make_long
+  
+  make_long <- function(sample_id){
+    paste0(substr(sample_id, 1, 5),
+           "0",
+           substr(sample_id, 6, 8))
+  }
+  
+  data_new <- data %>% 
+    mutate(sample_id = ifelse(!is.na(sample_id) & nchar(sample_id) == 8, 
+                              make_long(sample_id),
+                              sample_id)
+           )
+  
+  problems <- which(!is.na(data_new$sample_id) & nchar(data_new$sample_id) != 9)
+  
+  if (length(problems) > 0){
+    warning(paste("Some sample_ids have not 9 digits:"), data_new$sample_id[problems])
+  }
+  
+  return(data_new)
+}
+
+get_info <- function(data){
+  data %>% 
+    mutate(
+      t = substr(sample_id, 1,1),
+      site = substr(sample_id, 2,2),
+      depth = substr(sample_id, 3,3),
+      spec = substr(sample_id, 4,4),
+      size = substr(sample_id, 5,5),
+      replicate = as.numeric(substr(sample_id, 6,8))) %>% 
+    mutate(site = dplyr::recode(site,
+                         "T" = "Temae",
+                         "E" = "E2B"),
+           depth = dplyr::recode(depth,
+                          "D" = "20 m",
+                          "S" = "5 m"),
+           spec = dplyr::recode(spec,
+                         "A" = "A. hya",
+                         "P" = "P. ver",
+                         "M" = "P. mea"),
+           size = dplyr::recode(size,
+                         "L" = "Adult",
+                         "S" = "Juvenile"))
+}
+```
+
+```{r}
+pig_before <- read_feather(here("roboflow/data/2024_05_24_px_data_before.feather"))
+pig_during <- read_feather(here("roboflow/data/2024_05_24_px_data_during.feather"))
+```
+
+```{r}
+ignore_before <- read.csv(here("roboflow/data/2024_05_24_donttake_before.csv")) %>% 
+  mutate(take = "no")
+ignore_during <- read.csv(here("roboflow/data/2024_05_24_donttake_during.csv"))%>% 
+  mutate(take = "no")
+```
+
+```{r}
+pig_before <- left_join(pig_before,ignore_before, by = "filename")
+
+pig_before %>% 
+  filter(take == "no") %>% 
+  nrow()/2000
+```
+
+```{r}
+pig_during <- left_join(pig_during,ignore_during, by = "filename")
+
+
+
+
+pig_during %>% 
+  filter(take == "no") %>% 
+  nrow()/2000
+```
+
+```{r}
+pig_before <- pig_before %>% 
+  get_sample_id() %>% 
+  update_sample_id()
+
+pig_during <- pig_during %>% 
+  get_sample_id() %>% 
+  update_sample_id()
+```
+
+```{r}
+# chl a
+chla_before <- read.csv(here("physio/data/clean/before_bleaching.csv")) %>% 
+  update_sample_id() %>% 
+  group_by(sample_id) %>% 
+  summarise(chl_a_per_cm2 = mean(chl_a_per_cm2, na.rm =T))
+  
+chla_during <- read.csv(here("physio/data/clean/during_bleaching.csv")) %>% 
+  update_sample_id() %>% 
+   group_by(sample_id) %>% 
+  summarise(chl_a_per_cm2 = mean(chl_a_per_cm2, na.rm =T))
+```
+
+```{r}
+# chl a
+chla_before <- read.csv(here("physio/data/clean/before_bleaching.csv")) %>% 
+  update_sample_id() %>% 
+  group_by(sample_id) %>% 
+  summarise(chl_a_per_cm2 = mean(chl_a_per_cm2, na.rm =T))
+  
+chla_during <- read.csv(here("physio/data/clean/during_bleaching.csv")) %>% 
+  update_sample_id() %>% 
+   group_by(sample_id) %>% 
+  summarise(chl_a_per_cm2 = mean(chl_a_per_cm2, na.rm =T))
+```
+
+Combine
+
+```{r}
+pig_before <- pig_before %>% 
+  left_join(chla_before, by = "sample_id")
+
+pig_during <- pig_during %>% 
+  left_join(chla_during, by = "sample_id")
+
+dat_pig <- bind_rows(pig_before, pig_during)
+```
+
+For each image, divide in dark, medium and
+
+```{r}
+dat_pig <- dat_pig %>% 
+  mutate(brightness = rgb2hsv(Red,Green,Blue)[3,]) %>% 
+  select(sample_id, Red, Green, Blue, chl_a_per_cm2, brightness)
+```
+
+```{r}
+dat_pigS <- test %>% 
+  group_by(sample_id, 
+           chl_a_per_cm2,
+           brightness_group=cut(brightness, breaks= seq(0, 1, length = 4))) %>% 
+  reframe(Red = mean(Red),
+            Green = mean(Green),
+            Blue = mean(Blue)) %>% 
+  filter(!is.na(brightness_group)) %>% 
+  mutate(brightness_group = recode(brightness_group, 
+                                   "(0,0.333]" = "dark",
+                                   "(0.333,0.667]" = "mid",
+                                   "(0.667,1]" = "bright")
+         )
+```
+
+Add metadata
+
+```{r}
+dat_pigS <- dat_pigS %>% 
+  get_info()
+```
+
+```{r}
+write.csv(dat_pigS, file = here("roboflow/data/clean/2024_05_28_pigmentation.csv"),row.names = F)
+
+
+
+```
+
+```{r}
+dat_pigS2 <- dat_pig %>% 
+  group_by(sample_id, 
+           chl_a_per_cm2) %>% 
+  reframe(Red = mean(Red),
+            Green = mean(Green),
+            Blue = mean(Blue)) %>% 
+  get_info()
+  
+write.csv(dat_pigS2, file = here("roboflow/data/clean/2024_05_28_pigmentation_nogroup.csv"),row.names = F)
+```

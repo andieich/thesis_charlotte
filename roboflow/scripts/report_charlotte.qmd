@@ -1,0 +1,255 @@
+---
+title: "Report_charlote"
+format: html
+editor: visual
+---
+
+```{r}
+library(here)
+library(tidyverse)
+library(grDevices) #HSV conversion
+library(htmlTable)
+```
+
+```{r}
+calculate_indices <- function(data){
+  data %>% 
+    mutate(red_chromatic = Red/(Red + Green + Blue),
+  green_chromatic = Green/(Red + Green + Blue),
+  blue_chromatic = Blue/(Red + Green + Blue),
+  hue = rgb2hsv(Red,Green,Blue)[1,],
+  saturation = rgb2hsv(Red,Green,Blue)[2,],
+  brightness = rgb2hsv(Red,Green,Blue)[3,],
+  GMR = Green - Red,
+  GRRI = Green / Red,
+  RGRI = Red / Green,
+  GLI = (2* Green - Red - Blue) / (2 * Green + Red + Blue),
+  VARI = (Green - Red) / (Red + Green + Blue),
+  NGRDI = (green_chromatic - red_chromatic) / (green_chromatic + red_chromatic),
+  ExR = 1.4*red_chromatic - green_chromatic,
+  ExB = 1.4*blue_chromatic - green_chromatic,
+  ExG = 2*green_chromatic - red_chromatic - green_chromatic,
+  ExGR = ExG - ExR,
+  GRVI = (Green - Red) / (Green + Red),
+  DGCI = ((hue - 60) / 60 + (1 - saturation) + (1 - brightness))/3)
+}
+```
+
+```{r}
+d_pigm <- read.csv(here("roboflow/data/clean/2024_05_28_pigmentation_nogroup.csv"))
+
+d_pigm <- d_pigm %>% 
+  select(chl_a_per_cm2, Red:Blue, spec)
+```
+
+```{r}
+cols_spec <-  c("#E69F00", "#56B4E9", "#009E73")
+
+fig_ov <- d_pigm %>% 
+  mutate(spec = dplyr::recode(spec, 
+                              "A. hya" = "A. hyacinthus",
+                              "P. mea" = "P. meandrina",
+                              "P. ver" = "P. verrucosa")) %>% 
+  ggplot(aes(x = spec, y = chl_a_per_cm2, fill = spec))+
+  geom_violindot(dots_size = 2) +
+  scale_fill_manual(values = cols_spec)+
+  labs(x = NULL, y = expression("Chlorophyll a (µg "*cm^2*")"))+
+  theme_minimal()+
+  theme(legend.position = "None", 
+        axis.text.x = element_text(face = "italic"))
+
+
+
+
+ggsave(filename = "ov_chl.png",plot = fig_ov, path = here("roboflow/plots"),width = 13, height = 8,units = "cm")
+```
+
+```{r}
+d_pigm <- d_pigm %>% 
+  calculate_indices()
+```
+
+```{r}
+plot_RGB_log <- d_pigm %>% 
+  mutate(spec = dplyr::recode(spec, 
+                              "A. hya" = "A. hyacinthus",
+                              "P. mea" = "P. meandrina",
+                              "P. ver" = "P. verrucosa")) %>%
+  pivot_longer(Red:Blue, names_to = "colour") %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = colour))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm", se = F)+
+  facet_grid(colour ~    spec)+
+  scale_colour_manual(values = cols, name = NULL)+
+  labs(x = "Value", y = expression("log[Chlorophyll a (µg "*cm^2*")]"))+
+  theme_minimal()+
+  theme(legend.position = "bottom", 
+        strip.text.x = element_text(face = "italic"))
+
+plot_RGB_log
+ggsave(filename = "plot_RGB_log.png", plot = plot_RGB_log, path = here("roboflow/plots"),width = 25, height =15,units = "cm", scale = 0.7)
+```
+
+```{r}
+
+cols_hsv <- c("#0072B2", "#CC79A7", "#F0E442")
+plot_HSV_log <- d_pigm %>% 
+  mutate(spec = dplyr::recode(spec, 
+                              "A. hya" = "A. hyacinthus",
+                              "P. mea" = "P. meandrina",
+                              "P. ver" = "P. verrucosa")) %>%
+  pivot_longer(hue:brightness, names_to = "Parameter") %>% 
+  mutate(Parameter = dplyr::recode(Parameter, 
+                              "brightness" = "Brightness",
+                              "hue" = "Hue",
+                              "saturation" = "Saturation")) %>%
+  mutate(Parameter = factor(Parameter, levels = c("Hue", "Saturation", "Brightness"))) %>% 
+  ggplot(aes(x = value, y = log(chl_a_per_cm2), col = Parameter))+
+  geom_point(shape = 1)+
+  geom_smooth(method = "lm", se = F)+
+  facet_grid(Parameter ~    spec)+
+  scale_colour_manual(values = cols_hsv, name = NULL)+
+  labs(x = "Value", y = expression("log[Chlorophyll a (µg "*cm^2*")]"))+
+  theme_minimal()+
+  theme(legend.position = "bottom", 
+        strip.text.x = element_text(face = "italic"))
+
+plot_HSV_log
+
+ggsave(filename = "plot_HSV_log.png", plot = plot_HSV_log, path = here("roboflow/plots"),width = 25, height =15,units = "cm", scale = 0.7)
+```
+
+Only Acro
+
+```{r}
+d_pigm_AL <- d_pigm %>% 
+  filter(spec == "A. hya") %>% 
+  select(-spec)
+  select_if(~!is.factor(.)) %>% 
+  select_if(~!is.character(.))
+```
+
+Correlations
+
+```{r}
+
+cor(d_pigm_AL[-1], log(d_pigm_AL$chl_a_per_cm2)) %>% 
+  as.data.frame() %>% 
+  arrange(V1) %>% 
+  rename("Correlation" = "V1") %>% 
+  mutate("Parameter" = rownames(.)) %>% 
+  dplyr::select(Parameter, Correlation) %>% 
+  mutate(Correlation = txtRound(Correlation, 3)) %>% 
+  htmlTable(rnames = FALSE)
+```
+
+Models
+
+```{r}
+m_lm_AL <- lm(log(chl_a_per_cm2) ~ Red + Green + Blue + brightness, data = d_pigm_AL)
+res_lm_AL <- anova(m_lm_AL) %>% 
+  janitor::clean_names() %>% #clean names (no spaces etc)
+  mutate(pr_f = txtPval(pr_f, lim.sig = 10^-4)) %>% #round p values, everything below lim.sig is changed to < 0.0001 (or the appropriate number os 0s). Read in ?txtPval
+  mutate_at(vars(-c("df","pr_f")),txtRound,4) %>% #additionally to the already formatted p-values (pr_f), add all variables you do not want to have rounded (here, df)
+  htmlTable()
+
+res_lm_AL
+
+
+summary(m_lm_AL)
+anova(m_lm_AL)
+
+```
+
+```{r}
+library(car)
+m_glm_AL <- glm(chl_a_per_cm2 ~ Red + Green + Blue + brightness, 
+                family = Gamma(), data = d_pigm_AL)
+
+res_glm_AL <- Anova(m_glm_AL) %>% 
+  janitor::clean_names() %>% #clean names (no spaces etc)
+  mutate(pr_chisq = txtPval(pr_chisq, lim.sig = 10^-4)) %>% #round p values, everything below lim.sig is changed to < 0.0001 (or the appropriate number os 0s). Read in ?txtPval
+  mutate_at(vars(-c("df","pr_chisq")),txtRound,4) %>% #additionally to the already formatted p-values (pr_f), add all variables you do not want to have rounded (here, df)
+  htmlTable()
+
+res_glm_AL
+  
+```
+
+```{r}
+Anova(m_glm_AL)
+library(glmtoolbox)
+
+adjR2(m_glm_AL)
+```
+
+Predict
+
+```{r}
+pred_lm <- exp(predict(m_lm_AL))
+pred_glm <- predict(m_glm_AL, type = "response")
+
+d_pigm_AL <- d_pigm_AL %>% 
+  mutate(pred_glm = pred_glm,
+         pred_lm = pred_lm)
+
+```
+
+Plot
+
+```{r}
+plot_pred <- d_pigm_AL %>% 
+  select(chl_a_per_cm2, pred_glm, pred_lm) %>% 
+  pivot_longer(pred_glm:pred_lm, names_to = "Model") %>% 
+   mutate(Model = dplyr::recode(Model, 
+                              "pred_glm" = "GLM",
+                              "pred_lm" = "linear model")) %>%
+  ggplot(aes(x = value, y = chl_a_per_cm2))+
+  geom_abline(slope = 1,intercept = 0, linetype = "11", col = "grey")+
+  geom_point(shape = 21, aes(fill = Model), alpha = .8)+
+  scale_fill_manual(values = c("#E69F00", "#56B4E9"))+
+  labs(x = expression("Predicted Chlorophyll a (µg "*cm^2*")"), y = expression("Measured Chlorophyll a (µg "*cm^2*")"))+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+
+plot_pred
+```
+
+```{r}
+ggsave(filename = "plot_pred.png", plot = plot_pred, path = here("roboflow/plots"),width = 20, height =12,units = "cm", scale = 0.7)
+```
+
+add bleaching status
+
+```{r}
+d_pigm_b_stat_AL <- read.csv(here("roboflow/data/clean/2024_05_28_pigmentation_nogroup.csv")) %>% 
+  filter(spec == "A. hya") %>% 
+  select(chl_a_per_cm2, Red:Blue, sample_id) %>% 
+  calculate_indices()
+
+
+bleaching_status <- read.csv(here("overview/data/2024_05_15_sample_list_Charlotte.csv")) %>% 
+  select(sample_id, state_short)
+
+d_pigm_b_stat_AL <- left_join(d_pigm_b_stat_AL, bleaching_status, by = "sample_id") %>% 
+  filter(!is.na(state_short))
+
+```
+
+```{r}
+plot_bleaching_stat <- d_pigm_b_stat_AL %>% 
+  pivot_longer(cols = c(chl_a_per_cm2, Red:Blue, brightness), names_to = "Parameter") %>% 
+  mutate(state_short = dplyr::recode(state_short, 
+                              "B" = "Bleached",
+                              "H" = "Not bleached")) %>%
+  mutate(Parameter = dplyr::recode(Parameter, 
+                              "chl_a_per_cm2" = "Chlorophyll a (µg cm2)")) %>%
+  ggplot(aes(x = state_short, y = value, fill = state_short))+
+  geom_point(position = position_jitter(.2), shape = 21)+
+  facet_wrap(~Parameter, scales = "free")+
+  labs(x = NULL, y = NULL)+
+  scale_fill_manual(values = c("skyblue", "darkorange"))+
+  theme_minimal()
+
+plot_bleaching_stat
+```
