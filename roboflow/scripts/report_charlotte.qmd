@@ -237,19 +237,44 @@ d_pigm_b_stat_AL <- left_join(d_pigm_b_stat_AL, bleaching_status, by = "sample_i
 ```
 
 ```{r}
-plot_bleaching_stat <- d_pigm_b_stat_AL %>% 
+d_pigm_b_stat_AL %>% 
   pivot_longer(cols = c(chl_a_per_cm2, Red:Blue, brightness), names_to = "Parameter") %>% 
   mutate(state_short = dplyr::recode(state_short, 
                               "B" = "Bleached",
                               "H" = "Not bleached")) %>%
   mutate(Parameter = dplyr::recode(Parameter, 
-                              "chl_a_per_cm2" = "Chlorophyll a (µg cm2)")) %>%
+                              "chl_a_per_cm2" = "Chlorophyll~a~µg~cm^2")) %>%
+  mutate(Parameter = fct_relevel(Parameter, "Chlorophyll~a~µg~cm^2")) %>% 
+  
   ggplot(aes(x = state_short, y = value, fill = state_short))+
   geom_point(position = position_jitter(.2), shape = 21)+
-  facet_wrap(~Parameter, scales = "free")+
+  facet_wrap(~Parameter, scales = "free", , labeller = label_parsed)+
   labs(x = NULL, y = NULL)+
   scale_fill_manual(values = c("skyblue", "darkorange"))+
-  theme_minimal()
+  theme_minimal()+
+  theme(legend.position = "None")
 
-plot_bleaching_stat
+
+```
+
+```{r}
+plot_bleaching_state <- d_pigm_b_stat_AL %>% 
+  pivot_longer(cols = c(Red:Blue, brightness), names_to = "Parameter") %>% 
+  mutate(state_short = dplyr::recode(state_short, 
+                              "B" = "Bleached",
+                              "H" = "Not bleached")) %>%
+  mutate(Parameter = factor(Parameter, levels = c("Red", "Green", "Blue", "brightness"))) %>% 
+  
+  ggplot(aes(y = value, x = chl_a_per_cm2, fill = state_short))+
+  geom_point(position = position_jitter(.2), shape = 21)+
+  facet_wrap(~Parameter, scales = "free", , labeller = label_parsed)+
+  labs(y = "", x = expression("Chlorophyll a (µg "*cm^2*")"))+
+  scale_fill_manual(values = c("skyblue", "darkorange"), name = "")+
+  theme_minimal()+
+  theme(legend.position = "bottom")
+plot_bleaching_state
+```
+
+```{r}
+ggsave(filename = "plot_bleaching_state.png", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =12,units = "cm", scale = 0.7)
 ```
