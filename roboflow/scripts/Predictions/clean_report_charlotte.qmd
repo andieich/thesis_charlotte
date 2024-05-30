@@ -339,3 +339,77 @@ plot_bleaching_state
 
 ggsave(filename = "plot_bleaching_state.png", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =10,units = "cm")
 ```
+
+```{r}
+#bleaching all
+dat_cs <- read.csv(here("physio/data/clean/during_bleaching.csv"))
+bleaching_status <- read.csv(here("overview/data/2024_05_15_sample_list_Charlotte.csv")) %>% 
+  select(sample_id, state_short)
+
+dat_cs <- left_join(dat_cs, bleaching_status, by = "sample_id") %>% 
+  filter(!is.na(state_short))
+```
+
+```{r}
+dat_cs %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2, col = state_short))+
+  geom_point()+
+  geom_smooth(method = "lm")+
+  facet_grid(spec ~ site)+
+  theme_minimal()
+```
+
+```{r}
+dat_cs %>% 
+  ggplot(aes(x = state_short, y = count_per_cm2, col = state_short))+
+  geom_v()+
+  facet_grid(spec ~ site)+
+  theme_minimal()
+```
+
+```{r}
+m_state <-glm(chl_a_per_cm2 ~ state_short * site * spec, family = Gamma(), data = dat_cs)
+```
+
+```{r}
+library(car)
+Anova(m_state)
+```
+
+```{r}
+library(emmeans)
+
+
+em <- emmeans(m_state, pairwise ~ state_short* spec*site)
+
+
+plot(em)
+```
+
+```{r}
+dat_cs %>% 
+  ggplot()
+```
+
+```{r}
+dat_d <- read.csv(here("physio/data/clean/during_bleaching.csv")) %>% 
+  mutate(t = "during")
+dat_b <- read.csv(here("physio/data/clean/before_bleaching.csv"))%>% 
+  mutate(t = "before")
+
+dat_db <- rbind(dat_d, dat_b)
+
+dat_db <- dat_db %>% 
+  left_join(bleaching_status, by = "sample_id")
+```
+
+```{r}
+dat_db %>% 
+  mutate(state_short.x = ifelse(is.na(state_short.x), "H",state_short.x)) %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2, col = t))+
+  geom_point(aes(shape = state_short.x))+
+  geom_smooth(method = "lm")+
+  scale_shape_manual(values = c(1, 15))+
+  facet_grid(~spec)+
+  theme_minimal()
+```
