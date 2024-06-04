@@ -20,6 +20,7 @@ library(patchwork) #plots
 library(ncdf4) # read files
 library(patchwork)
 library(geosphere)
+library(cowplot)
 ```
 
 ### Load my functions
