@@ -339,3 +339,27 @@ ggsave(filename = "fig_dhw.pdf",
        height = 10, 
        units = "cm")
 ```
+
+Check DHW in 2019
+
+```{r}
+dat_moorea_dhw_2019 <- read_nc(here("temperature/data/ncdf/moorea_dhw"),
+                      varname = "CRW_DHW", 
+                      values_to = "dhw") %>% 
+  filter(date > as.Date("2019-01-01"), 
+         date < as.Date("2019-12-31"))
+```
+
+```{r}
+
+
+dat_moorea_dhw_2019_e2b <-  dat_mm_moorea %>% 
+  find_closest_point(lat = -17.48218929572189,
+                     lon = -149.84235388934127) %>% 
+  mutate(site = "E2B")
+
+dat_moorea_dhw_2019_temae <-  dat_mm_moorea %>% 
+  find_closest_point(lat = -17.50232387727692,
+                     lon = -149.76201551992233) %>% 
+  mutate(site = "Temae")
+```
