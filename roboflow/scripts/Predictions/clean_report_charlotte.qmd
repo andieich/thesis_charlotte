@@ -330,6 +330,7 @@ plot_bleaching_stateB
 ```{r}
 
 library(patchwork)
+library(svglite)
 
 
 plot_bleaching_state <- plot_bleaching_stateA + plot_bleaching_stateB +
@@ -338,4 +339,6 @@ plot_bleaching_state <- plot_bleaching_stateA + plot_bleaching_stateB +
 plot_bleaching_state
 
 ggsave(filename = "plot_bleaching_state.png", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =10,units = "cm")
+
+ggsave(filename = "plot_bleaching_state.svg", plot = plot_bleaching_state, path = here("roboflow/plots"),width = 20, height =10,units = "cm")
 ```
