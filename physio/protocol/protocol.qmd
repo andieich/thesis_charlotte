@@ -98,3 +98,5 @@ Work in batches of 6 six samples at a time.
 1.  Clean haemocytometer with `96% EtOH`.
 2.  Vortex sample for `15 s`.
 3.  Add `10 µL` sample solution into each of the 2 chamber in the haemocytometer.
+
+test
