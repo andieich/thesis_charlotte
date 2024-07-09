@@ -10,75 +10,91 @@ editor: visual
 date: '2024-04-02'
 ---
 
-### 1. Aim
+# Introduction
+
+## Aim
 
 Measurement of chlorophyll a concentration and Symbiodiniaceae density
 
-------------------------------------------------------------------------
+## Overview workflow
 
-### 2. Overview workflow
-
-**General remark**
+### **General remark**
 
 Chlorophyll degrades quickly under high temperatures and light. Keep the samples on ice and the lab as dark as possible.
 
-**Remove tissue from corals**
+### **Remove coral tissue**
 
 An air gun is used to blow off the corals tissue in sterile filtrated seawater. The tissue slurry is collected in a zip-lock bag and transferred into a 50 mL tube. After centrifugation to remove excess water, the slurry is sub-sampled for chlorophyll extraction and Symbiodiniaceae counts.
 
-**Extract chlorophyll**
+### **Extract chlorophyll**
 
 Chlorophyll is extracted in acetone and the concentration measured with a photometer
 
-**Symbiodiniaceae couts**
+### **Symbiodiniaceae counts**
 
 For six sub samples, the Symbiodiniaceae are counted with a hemocytometer
 
-**Surface area**
+### **Surface area**
 
-The chlorophyll concentration and Symbiodiniaceae counts have to be normalized to the tissue surface area of the coral fragment. The area is estimated by comoaring the weight of the coral fragment before and after coating it with paraffin wax.
+The chlorophyll concentration and Symbiodiniaceae counts have to be normalized to the tissue surface area of the coral fragment. The area is estimated by comparing the weight of the coral fragment before and after coating it with paraffin wax.
 
-------------------------------------------------------------------------
+# Protocol
 
-### 3. Materials
+## Materials
 
-#### 3.1 Tissue removal, chlorophyll extraction, and preparation for Symbiodiniaceae counts
+### 1. Remove coral tissue
 
-**In Biomol 2:**
+-   [ ] Haemocytometer
 
--   Air gun with SCUBA tank
+### 2. Chlorophyll
 
-<!-- -->
+-   [ ] Haemocytometer
 
--   Homogenisator
+### 3. Symbiodiniaceae counts
 
--   Ziplock bags
+-   [ ] Haemocytometer
+-   [ ] Stereo loupe
+-   [ ] 50 µL pipette and tips **CHECK!**
+-   [ ] 1,000 µL pipette and tips
 
--   Forceps
+## Workflow
 
--   Cool box and ice
+::: callout-note
+Chlorophyll is very unstable. Always keep samples on ice and if possible in darkness.
+:::
 
--   100% Acetone
+### 1. Remove coral tissue
 
--   70% Ethanol in wash bottle
+::: callout-note
+Work in batches of 6 six samples at a time.
+:::
 
--   Sterile filtrated seawater (SSW), filtered with Whatman GF/C filter, about 50 mL per sample
+1.  Transfer coral fragment into `ziplock bag` and add enough `SSW` to immerse sample. Use an air gun to remove all coral tissue. Afterwards, the whit coral skeleton should be visible.
+    1.  Store the skeleton in a solution of `50% bleach` until measuring the surface area.
+2.  Transfer tissue slurry into a pre-weighted (taraed) `500 mL beaker`. Note the weight to estimate the volume of the tissue slurry.
+3.  Homogenize tissue slurry for `30 - 60 s`. Clean homogenizer with `SSW` and wipe dry.
+4.  Transfer about 40 g tissue slurry into pre-weigh (taraed) `50 mL tube`. Try to be exact to keep the centrifuge used later balanced.
+5.  Centrifuge the 6 sample tubes using `rotor 19676` for `20 min` at `9,000 rpm` at `4 °C`.
+6.  With a `1000 mL pipette`, remove as much supernatant as possible without damaging the pellet. Vortex to re-suspend remaining tissue slurry.
+7.  Centrifuge for `10 min` with the other settings as in step 5. Repeat steps 6 - 7 until all supernatant could be removed.
+8.  Add `3,000 mL SSW` and vortex until solution is homogeneous. Divide solution for chlorophyll analysis (`1,000 mL)` and Symbiodiniaceae counts (`1,000 mL`). Store all samples at 4 °C, keep chlorophyll samples wrapped in aluminium foil.
 
--   1000 mL pipette and tips
+### 2. Chlorophyll
 
--   1x 50 mL Falcon tube per sample
+1.  Centrifuge sample tubes using `rotor 12154` for `5 min` at `12,000 rpm` at `4 °C`.
 
--   2x 2 mL tubes per sample
+2.  Remove supernatant with `1,000 mL pipette`. Remove remaining drops of supernatant wit paper tissue.
 
-**In Salle Froid**
+3.  Add `1,000 mL acetone` and close tube. Homogenize with pipette and vortex for `15 s`.
 
--   Rotor 19776 for 50 mL tubes
+4.  Extract chlorophyll for `24 h` at `4 °C`.
 
--   Rotor 12154 for 2 mL tubes
+5.  Vortex samples for `15 s` and centrifuge samples using `rotor 12154` for `5 min` at `12,000 rpm` at `4 °C`. Keep samples on ice and in darkness. Transport samples carefully to not damage the pellet.
 
-### 4. Workflow
+6.  Measure `500 ml` of the chlorophyll extract in duplicates against an acetone blank. Re-blank after 10 samples. Refer to **XXX** **protocol** for these measurements and the data export.
 
-#### 4.1 Remove tissue
+### 3. Symbiodiniaceae counts
 
-1.  Keep samples on ice for all steps.
-2.  
+1.  Clean haemocytometer with `96% EtOH`.
+2.  Vortex sample for `15 s`.
+3.  Add `10 µL` sample solution into each of the 2 chamber in the haemocytometer.

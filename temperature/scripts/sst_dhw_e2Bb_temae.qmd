@@ -348,6 +348,32 @@ dat_moorea_dhw_2019 <- read_nc(here("temperature/data/ncdf/moorea_dhw"),
                       values_to = "dhw") %>% 
   filter(date > as.Date("2019-01-01"), 
          date < as.Date("2019-12-31"))
+
+dat_moorea_sst_2019 <- read_nc(here("temperature/data/ncdf/moorea_sst"),
+                      varname = "CRW_SST", 
+                      values_to = "sst") %>% 
+  filter(date > as.Date("2019-01-01"), 
+         date < as.Date("2019-12-31"))
+```
+
+```{r}
+dat_moorea_dhw_2019 %>% 
+  mutate(year = year(date)) %>% 
+  filter(year == 2019) %>% 
+  group_by(lat, lon) %>% 
+  summarise(dhw_max = max(dhw, na.rm = T)) %>% 
+  ungroup() %>% 
+  ggplot() +
+  geom_raster(aes(y = lat, x = lon, fill = dhw_max)) +
+  geom_text(aes(y = lat, x = lon, label = dhw_max))+
+  geom_sf(data = map_FrenchPolynesia,
+          fill = "antiquewhite",
+          col = "black")+
+  coord_sf(xlim = c(moorea_box$lon_min, moorea_box$lon_max),
+           ylim = c(moorea_box$lat_min, moorea_box$lat_max))+
+  labs(x=NULL, y = NULL, title = "DHW Moorea 2024")+
+  scale_fill_viridis()+
+  theme_minimal()
 ```
 
 ```{r}
@@ -359,17 +385,129 @@ dat_moorea_dhw_2019_e2b <-  dat_moorea_dhw_2019 %>%
                      lon = -149.84235388934127) %>% 
   mutate(site = "E2B")
 
+
+#-17.529357548753765, -149.77075822501251 update coords
 dat_moorea_dhw_2019_temae <-  dat_moorea_dhw_2019 %>% 
   filter(!is.na(dhw)) %>% 
-  find_closest_point(lat = -17.50232387727692,
-                     lon = -149.76201551992233) %>% 
+  find_closest_point(lat = -17.529357548753765,
+                     lon = -149.77075822501251) %>% 
   mutate(site = "Temae")
 
 dat_moorea_dhw_2019 <- bind_rows(dat_moorea_dhw_2019_e2b, dat_moorea_dhw_2019_temae)
+
+```
+
+Updated Plot 2019
+
+```{r}
+dat_max_dhw_19 <- dat_moorea_dhw_2019 %>% 
+  mutate(year = year(date)) %>% 
+  filter(year == 2019) %>% 
+  group_by(site) %>% 
+  summarise(max_dhw = max(dhw, na.rm = T))
+
+
+# make extra df for dhw for plotting
+
+dat_dhwplot_temae_19 <- dat_moorea_dhw_2019 %>% 
+  filter(site == "Temae") 
+
+dat_dhwplot_temae_19 <- as.data.frame(approx(dat_dhwplot_temae_19$date, 
+                       dat_dhwplot_temae_19$dhw, 
+                       seq(min(dat_dhwplot_temae_19$date), 
+                           max(dat_dhwplot_temae_19$date),
+                           len = 5000)))%>%
+  mutate(site = "Temae")
+
+dat_dhwplot_e2b_19<- dat_moorea_dhw_2019 %>% 
+  filter(site == "E2B") 
+
+dat_dhwplot_e2b_19 <- as.data.frame(approx(dat_dhwplot_e2b_19$date, 
+                       dat_dhwplot_e2b_19$dhw, 
+                       seq(min(dat_dhwplot_e2b_19$date), 
+                           max(dat_dhwplot_e2b_19$date),
+                           len = 5000))) %>% 
+  mutate(site = "E2B")
+
+
+
+dat_dhwplot_19 <- bind_rows(dat_dhwplot_temae_19, dat_dhwplot_e2b_19)
+
+
+
+plot_dhw_19 <- dat_dhwplot_19 %>% 
+  ggplot(aes(x = x, y = y))+
+  geom_vline(xintercept = as.Date("2019-01-01"), col = "grey", linetype = "11")+
+  geom_segment(aes(xend = x, yend = 0, col = y), linewidth = 0.1, show.legend = F) +
+  geom_text(data = dat_max_dhw_19, 
+            aes(x = as.Date("2019-05-01"),
+                y = max_dhw, 
+               label = round(max_dhw,1)),
+            vjust = -.3)+
+  labs(x = NULL, y = "DHW (°C weeks)")+
+  scale_x_date(breaks  = "1 month", date_labels = "%b", expand = c(0, 0))+
+  scale_y_continuous(expand = c(0, 0), limits = c(0, 4)) +
+  facet_wrap(~site)+
+  scale_colour_viridis_c(option = "inferno")+
+
+  theme_minimal()+
+  theme(
+    panel.border = element_rect(colour = "black", fill=NA),
+    panel.grid = element_blank()
+  )+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+plot_dhw_19
 ```
 
 ```{r}
-dat_moorea_dhw_2019 %>% 
-  group_by(site) %>% 
-  summarise(max_dhw = max(dhw, na.rm = T))
+plot_temp_19 <- dat_moorea_sst_2019 %>% 
+  ggplot(aes(x = date, y = sst))+
+  geom_hline(data = dat_mmm, aes(yintercept = mmm + 1), col = "black")+#bleaching threshold
+  geom_text(data = dat_mmm, 
+            aes(y = mmm + 1, 
+                x = as.Date(-Inf), 
+                label = paste(round(mmm+1, 1),"°C")), 
+            col = "black", vjust = -0.3, hjust = -0.1)+#bleaching threshold
+  geom_line(col = "grey", linewidth = .8) +
+  labs(x = NULL, y = "SST (°C)")+
+  scale_x_date(breaks  = "1 month", date_labels = "%b", expand = c(0, 0))+
+  scale_y_continuous(position = "right", expand = c(0, 0), limits = c(25, 31)) +
+  facet_wrap(~site)+
+  theme_minimal()+
+  theme(
+    panel.border = element_rect(colour = "black", fill=NA),
+    panel.grid = element_blank()
+  )+ 
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))+
+  theme(axis.title.x=element_blank(),
+        axis.text.x=element_blank(),
+        axis.ticks.x=element_blank())
+
+plot_temp_19
+```
+
+```{r}
+fig_19 <- align_plots(plot_dhw_19,
+                   plot_temp_19, 
+                   align="hv", 
+                   axis="tblr")
+
+fig_19 <- ggdraw(fig_19[[1]]) + draw_plot(fig_19[[2]])
+
+fig_19
+
+ggsave(filename = "fig_dhw_19.pdf",
+       plot = fig_19,
+       path = here("temperature/plots"),
+       width = 25,
+       height = 10, 
+       units = "cm")
+
+ggsave(filename = "fig_dhw_19.svg",
+       plot = fig_19,
+       path = here("temperature/plots"),
+       width = 25,
+       height = 10, 
+       units = "cm")
 ```
