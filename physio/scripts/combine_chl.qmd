@@ -1,0 +1,146 @@
+---
+title: "Chl a analysis"
+format: html
+editor: visual
+---
+
+## Packages & Data
+
+```{r}
+library(tidyverse)
+library(here)
+library(scales)
+
+# theme for ggplots
+theme_andi <- function(){
+  theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.background = element_blank(), 
+        strip.background = element_blank(),
+        axis.line = element_line(colour = "black" ))
+}
+```
+
+```{r}
+dat_before <- read.csv(here("physio/data/clean/before_bleaching.csv")) %>% 
+  select(-X) %>% 
+  mutate(t = "before")
+
+dat_during <- read.csv(here("physio/data/clean/during_bleaching.csv")) %>% 
+  select(-X) %>% 
+  mutate(t = "during")
+
+dat <- bind_rows(dat_before, dat_during) %>% 
+  mutate(chl_per_sym = chl_a_per_cm2/count_per_cm2) 
+```
+
+```{r}
+
+cols <- c("#4E84C4", "#D16103")
+
+
+plot_line <- dat %>% 
+  ggplot(aes(x = count_per_cm2, y = chl_a_per_cm2))+
+  geom_smooth(method = "lm", aes(col = t, fill = t),show.legend = FALSE)+
+  geom_point(shape = 21, aes(fill = t), col = "black")+
+  facet_grid(site ~ spec)+
+  labs(x = expression("Symbiodiniaceae ("*cm^-2*")"),
+       y = expression("Chlorophyll"~italic(a)~"(µg "*cm^2*")"))+
+  scale_colour_manual(values = cols, name = NULL)+
+  scale_fill_manual(values = cols, name = NULL)+
+  scale_x_continuous(labels = function(x) format(x, scientific = TRUE))+
+  theme_andi()+
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+
+
+
+ggsave(filename = "plot_per_chl_sym.pdf",
+       plot = plot_line, 
+       path = here("physio/plots/"),
+       width = 18, height = 10, units  = "cm")
+
+```
+
+```{r}
+dat %>% 
+  ggplot(aes(x = t, y = chl_per_sym))+
+  geom_jitter(shape = 21, aes(fill = t), col = "black")+
+  facet_grid(site ~ spec)+
+  labs(x = NULL,
+       y = expression(Delta~Chl~italic(a)~Sym^-1))+
+  scale_colour_manual(values = cols, name = NULL)+
+  scale_fill_manual(values = cols, name = NULL)+
+  scale_y_continuous(labels = function(x) format(x, scientific = TRUE))+
+  theme_andi()
+```
+
+```{r}
+library(brms)
+library(cmdstanr)
+
+dat$chl_per_sym %>% range()
+
+dat <- dat %>% 
+  filter(chl_per_sym != Inf)
+
+
+mod <- brm(chl_per_sym ~ 0 +spec * t * site,
+           family = Gamma(),
+           data = dat,
+           iter = 4000,
+           warmup = 2000,
+           # control = list(adapt_delta = 0.85, 
+           #                max_treedepth = 15),
+           chains = 4,
+           cores = 4,
+           threads = threading(2, static = T),
+           seed = 123,
+           backend = "cmdstanr")
+```
+
+```{r}
+summary(mod)#no div trans
+pp_check(mod, ndraws = 100)
+bayes_R2(mod)#
+```
+
+```{r}
+new_data <- dat %>% 
+  droplevels() %>% 
+  dplyr::select(spec, t, site) %>% 
+  distinct() %>% 
+  mutate(row = 1:n())
+
+
+library(tidybayes)
+
+post_pred <-  mod %>% 
+   predicted_draws(new_data) %>% 
+  ungroup() %>% 
+  select(.draw, spec, site, t, .prediction) %>% 
+  pivot_wider(names_from = t, values_from = .prediction) %>%
+  janitor::clean_names() %>% 
+  mutate(delta = before - during)
+```
+
+```{r}
+library(ggridges)
+
+col_spec <- c("#FFDB6D", "#52854C", "#D16103") %>% 
+  rev()
+
+plot_per_sym <- post_pred %>% 
+  ggplot(aes(y = spec, x = delta, fill = spec))+
+  geom_density_ridges_gradient()+
+  geom_vline(xintercept = 0, linetype = "11")+
+  scale_fill_manual(values = col_spec, name = NULL)+
+  labs(y=NULL, x = expression(Delta~Chl~italic(a)~Sym^-1))+
+  facet_grid( ~ site)+ 
+  theme_andi()
+
+
+ggsave(filename = "plot_per_sym.pdf",
+       plot = plot_per_sym, 
+       path = here("physio/plots/"),
+       width = 18, height = 10, units  = "cm")
+```
