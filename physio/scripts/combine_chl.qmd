@@ -84,8 +84,8 @@ dat <- dat %>%
   filter(chl_per_sym != Inf)
 
 
-mod <- brm(chl_per_sym ~ 0 +spec * t * site,
-           family = Gamma(),
+mod <- brm(chl_per_sym ~ spec * t * site,
+           family = Gamma(link = "log"),
            data = dat,
            iter = 4000,
            warmup = 2000,
@@ -115,10 +115,10 @@ new_data <- dat %>%
 library(tidybayes)
 
 post_pred <-  mod %>% 
-   predicted_draws(new_data) %>% 
+   epred_draws(new_data) %>% 
   ungroup() %>% 
-  select(.draw, spec, site, t, .prediction) %>% 
-  pivot_wider(names_from = t, values_from = .prediction) %>%
+  select(.draw, spec, site, t, .epred) %>% 
+  pivot_wider(names_from = t, values_from = .epred) %>%
   janitor::clean_names() %>% 
   mutate(delta = before - during)
 ```
@@ -138,9 +138,33 @@ plot_per_sym <- post_pred %>%
   facet_grid( ~ site)+ 
   theme_andi()
 
+plot_per_sym
 
 ggsave(filename = "plot_per_sym.pdf",
        plot = plot_per_sym, 
        path = here("physio/plots/"),
        width = 18, height = 10, units  = "cm")
+```
+
+Check freq
+
+```{r}
+m_frq <- glm(chl_per_sym ~ spec * t * site,
+           family = Gamma(link = "log"),
+           data = dat)
+
+
+library(car)
+
+
+Anova(m_frq)
+plot(m_frq)
+```
+
+```{r}
+library(emmeans)
+
+
+emmeans(m_frq, pairwise  ~ t| site * spec  )
+
 ```
