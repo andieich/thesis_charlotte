@@ -1,0 +1,44 @@
+---
+title: "Coral Tissue Removal"
+format: 
+  html:
+    theme: [lux, style/style.css]
+    toc: true
+    toc-depth: 4
+    toc-title: " "
+    toc-location: left
+editor: visual  
+date: '2024-11-19'
+author: Andreas Eich
+---
+
+## Materials
+
+-   [ ] SCUBA tank and air gun
+-   [ ] Ziplock bags
+-   [ ] SSW
+-   [ ] Tissue homogenizer
+-   [ ] 500 mL beaker
+-   [ ] Scale
+-   [ ] 12x 50 mL tubes (2 sets of 6)
+-   [ ] 1000 µL pipette and tips without filter (1 tip per sample)
+-   [ ] Vortexter
+-   [ ] Ethanol for cleaning
+-   [ ] Aluminium foil
+-   [ ] Eppendrof tubes (2 per sample) & rack
+
+## Method
+
+::: callout-note
+Work in batches of six samples at a time.
+:::
+
+1.  Transfer coral fragment into ziplock bag and add enough SSW to immerse sample. Use an air gun to remove all coral tissue. Afterwards, the white coral skeleton should be visible.
+2.  Store the skeleton in original sample bag in -20°C freezer until surface measurement.
+3.  Transfer tissue slurry into a pre-weighted (taraed) 500 mL beaker. Note the weight to estimate the volume of the tissue slurry.
+4.  Homogenize tissue slurry for 30 - 60 s. Clean homogenizer with SSW and wipe dry between samples and clean with ethanol after use.
+5.  Immediately transfer about 40 g tissue slurry into pre-weigh (taraed) 50 mL tube. Try to be exact to keep the centrifuge used later balanced. Store tubes in fridge when preparing the remaining samples.
+6.  Centrifuge the 6 sample tubes using rotor 19676 for 20 min at 9,000 rpm at 4 °C.
+7.  With a 1000 mL pipette, remove as much supernatant as possible without damaging the pellet. Vortex to re-suspend remaining tissue slurry.
+8.  Centrifuge for 10 min with the other settings as in step 5. Repeat steps 6 - 7 until all supernatant was be removed.
+9.  Add 3 mL SSW (1 mL pipette, tip can be re-used when not immersed) and vortex until solution is homogeneous. Divide solution for chlorophyll analysis (1 mL) and Symbiodiniaceae counts (1 mL) into Eppendorf tubes. Store all samples at 4 °C, keep chlorophyll samples wrapped in aluminium foil.

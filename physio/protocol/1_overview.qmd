@@ -1,0 +1,31 @@
+---
+title: "Overview"
+format: 
+  html:
+    theme: [lux, style/style.css]
+    toc: true
+    toc-depth: 4
+    toc-title: " "
+    toc-location: left
+editor: visual  
+date: '2024-11-19'
+author: Andreas Eich
+---
+
+# Overview
+
+**Remove coral tissue**
+
+An air gun is used to blow off the corals tissue in sterile filtrated seawater. The tissue slurry is collected in a zip-lock bag and transferred into a 50 mL tube. After centrifugation to remove excess water, the slurry is sub-sampled for chlorophyll extraction and Symbiodiniaceae counts.
+
+**Extract chlorophyll**
+
+Chlorophyll is extracted in acetone and the concentration measured with a photometer.
+
+**Symbiodiniaceae counts**
+
+For six sub samples, the Symbiodiniaceae are counted with a hemocytometer.
+
+**Surface area**
+
+The chlorophyll concentration and Symbiodiniaceae counts have to be normalized to the tissue surface area of the coral fragment. The area is estimated by comparing the weight of the coral fragment before and after coating it with paraffin wax.

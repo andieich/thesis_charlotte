@@ -9,7 +9,7 @@
 <meta name="author" content="Andreas Eich">
 <meta name="dcterms.date" content="2024-11-19">
 
-<title>Chlophyll extraction, Symbiodiniaceae counts, and surface measurement</title>
+<title>Chlophyll extraction &amp; measurement</title>
 <style>
 code{white-space: pre-wrap;}
 span.smallcaps{font-variant: small-caps;}
@@ -22,20 +22,69 @@ ul.task-list li input[type="checkbox"] {
   margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
   vertical-align: middle;
 }
-</style>
+/* CSS for citations */
+div.csl-bib-body { }
+div.csl-entry {
+  clear: both;
+  margin-bottom: 0em;
+}
+.hanging-indent div.csl-entry {
+  margin-left:2em;
+  text-indent:-2em;
+}
+div.csl-left-margin {
+  min-width:2em;
+  float:left;
+}
+div.csl-right-inline {
+  margin-left:2em;
+  padding-left:1em;
+}
+div.csl-indent {
+  margin-left: 2em;
+}</style>
 
 
-<script src="protocol_files/libs/clipboard/clipboard.min.js"></script>
-<script src="protocol_files/libs/quarto-html/quarto.js"></script>
-<script src="protocol_files/libs/quarto-html/popper.min.js"></script>
-<script src="protocol_files/libs/quarto-html/tippy.umd.min.js"></script>
-<script src="protocol_files/libs/quarto-html/anchor.min.js"></script>
-<link href="protocol_files/libs/quarto-html/tippy.css" rel="stylesheet">
-<link href="protocol_files/libs/quarto-html/quarto-syntax-highlighting-2486e1f0a3ee9ee1fc393803a1361cdb.css" rel="stylesheet" id="quarto-text-highlighting-styles">
-<script src="protocol_files/libs/bootstrap/bootstrap.min.js"></script>
-<link href="protocol_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="protocol_files/libs/bootstrap/bootstrap-74b07afa145af1c61cb9ebb5c9dbd675.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script src="3_chlorophyll_files/libs/clipboard/clipboard.min.js"></script>
+<script src="3_chlorophyll_files/libs/quarto-html/quarto.js"></script>
+<script src="3_chlorophyll_files/libs/quarto-html/popper.min.js"></script>
+<script src="3_chlorophyll_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="3_chlorophyll_files/libs/quarto-html/anchor.min.js"></script>
+<link href="3_chlorophyll_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="3_chlorophyll_files/libs/quarto-html/quarto-syntax-highlighting-ecbfd06184c6e4690296ed970005620f.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="3_chlorophyll_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="3_chlorophyll_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="3_chlorophyll_files/libs/bootstrap/bootstrap-75a283a18f8ce8e61d8c1adc43ffdcdf.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
 
+  <script src="https://cdnjs.cloudflare.com/polyfill/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+<script type="text/javascript">
+const typesetMath = (el) => {
+  if (window.MathJax) {
+    // MathJax Typeset
+    window.MathJax.typeset([el]);
+  } else if (window.katex) {
+    // KaTeX Render
+    var mathElements = el.getElementsByClassName("math");
+    var macros = [];
+    for (var i = 0; i < mathElements.length; i++) {
+      var texText = mathElements[i].firstChild;
+      if (mathElements[i].tagName == "SPAN") {
+        window.katex.render(texText.data, mathElements[i], {
+          displayMode: mathElements[i].classList.contains('display'),
+          throwOnError: false,
+          macros: macros,
+          fleqn: false
+        });
+      }
+    }
+  }
+}
+window.Quarto = {
+  typesetMath
+};
+</script>
 
 </head>
 
@@ -44,31 +93,22 @@ ul.task-list li input[type="checkbox"] {
 <div id="quarto-content" class="page-columns page-rows-contents page-layout-article toc-left">
 <div id="quarto-sidebar-toc-left" class="sidebar toc-left">
   <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">Table of contents</h2>
+    <h2 id="toc-title">&nbsp;</h2>
    
   <ul>
-  <li><a href="#overview" id="toc-overview" class="nav-link active" data-scroll-target="#overview">Overview</a>
+  <li><a href="#chlorophyll-extraction" id="toc-chlorophyll-extraction" class="nav-link active" data-scroll-target="#chlorophyll-extraction">1. Chlorophyll Extraction</a>
   <ul>
-  <li><a href="#remove-coral-tissue" id="toc-remove-coral-tissue" class="nav-link" data-scroll-target="#remove-coral-tissue"><strong>Remove coral tissue</strong></a></li>
-  <li><a href="#extract-chlorophyll" id="toc-extract-chlorophyll" class="nav-link" data-scroll-target="#extract-chlorophyll"><strong>Extract chlorophyll</strong></a></li>
-  <li><a href="#symbiodiniaceae-counts" id="toc-symbiodiniaceae-counts" class="nav-link" data-scroll-target="#symbiodiniaceae-counts"><strong>Symbiodiniaceae counts</strong></a></li>
-  <li><a href="#surface-area" id="toc-surface-area" class="nav-link" data-scroll-target="#surface-area"><strong>Surface area</strong></a></li>
+  <li><a href="#materials" id="toc-materials" class="nav-link" data-scroll-target="#materials">Materials</a></li>
+  <li><a href="#method" id="toc-method" class="nav-link" data-scroll-target="#method">Method</a></li>
   </ul></li>
-  <li><a href="#protocol" id="toc-protocol" class="nav-link" data-scroll-target="#protocol">Protocol</a>
+  <li><a href="#chlorophyll-measurement" id="toc-chlorophyll-measurement" class="nav-link" data-scroll-target="#chlorophyll-measurement">2. Chlorophyll Measurement</a>
   <ul>
-  <li><a href="#materials" id="toc-materials" class="nav-link" data-scroll-target="#materials">Materials</a>
-  <ul class="collapse">
-  <li><a href="#remove-coral-tissue-1" id="toc-remove-coral-tissue-1" class="nav-link" data-scroll-target="#remove-coral-tissue-1">1. Remove coral tissue</a></li>
-  <li><a href="#chlorophyll" id="toc-chlorophyll" class="nav-link" data-scroll-target="#chlorophyll">2. Chlorophyll</a></li>
-  <li><a href="#symbiodiniaceae-counts-1" id="toc-symbiodiniaceae-counts-1" class="nav-link" data-scroll-target="#symbiodiniaceae-counts-1">3. Symbiodiniaceae counts</a></li>
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#biotek-photometer" id="toc-biotek-photometer" class="nav-link" data-scroll-target="#biotek-photometer">BioTek Photometer</a></li>
+  <li><a href="#materials-1" id="toc-materials-1" class="nav-link" data-scroll-target="#materials-1">Materials</a></li>
+  <li><a href="#method-1" id="toc-method-1" class="nav-link" data-scroll-target="#method-1">Method</a></li>
   </ul></li>
-  <li><a href="#workflow" id="toc-workflow" class="nav-link" data-scroll-target="#workflow">Workflow</a>
-  <ul class="collapse">
-  <li><a href="#remove-coral-tissue-2" id="toc-remove-coral-tissue-2" class="nav-link" data-scroll-target="#remove-coral-tissue-2">1. Remove coral tissue</a></li>
-  <li><a href="#chlorophyll-1" id="toc-chlorophyll-1" class="nav-link" data-scroll-target="#chlorophyll-1">2. Chlorophyll</a></li>
-  <li><a href="#symbiodiniaceae-counts-2" id="toc-symbiodiniaceae-counts-2" class="nav-link" data-scroll-target="#symbiodiniaceae-counts-2">3. Symbiodiniaceae counts</a></li>
-  </ul></li>
-  </ul></li>
+  <li><a href="#problems" id="toc-problems" class="nav-link" data-scroll-target="#problems">Problems</a></li>
   </ul>
 </nav>
 </div>
@@ -78,7 +118,7 @@ ul.task-list li input[type="checkbox"] {
 
 <header id="title-block-header" class="quarto-title-block default">
 <div class="quarto-title">
-<h1 class="title">Chlophyll extraction, Symbiodiniaceae counts, and surface measurement</h1>
+<h1 class="title">Chlophyll extraction &amp; measurement</h1>
 </div>
 
 
@@ -107,64 +147,21 @@ ul.task-list li input[type="checkbox"] {
 </header>
 
 
-<section id="overview" class="level1">
-<h1>Overview</h1>
-<section id="remove-coral-tissue" class="level2">
-<h2 class="anchored" data-anchor-id="remove-coral-tissue"><strong>Remove coral tissue</strong></h2>
-<p>An air gun is used to blow off the corals tissue in sterile filtrated seawater. The tissue slurry is collected in a zip-lock bag and transferred into a 50 mL tube. After centrifugation to remove excess water, the slurry is sub-sampled for chlorophyll extraction and Symbiodiniaceae counts.</p>
-</section>
-<section id="extract-chlorophyll" class="level2">
-<h2 class="anchored" data-anchor-id="extract-chlorophyll"><strong>Extract chlorophyll</strong></h2>
-<p>Chlorophyll is extracted in acetone and the concentration measured with a photometer.</p>
-</section>
-<section id="symbiodiniaceae-counts" class="level2">
-<h2 class="anchored" data-anchor-id="symbiodiniaceae-counts"><strong>Symbiodiniaceae counts</strong></h2>
-<p>For six sub samples, the Symbiodiniaceae are counted with a hemocytometer.</p>
-</section>
-<section id="surface-area" class="level2">
-<h2 class="anchored" data-anchor-id="surface-area"><strong>Surface area</strong></h2>
-<p>The chlorophyll concentration and Symbiodiniaceae counts have to be normalized to the tissue surface area of the coral fragment. The area is estimated by comparing the weight of the coral fragment before and after coating it with paraffin wax.</p>
-</section>
-</section>
-<section id="protocol" class="level1">
-<h1>Protocol</h1>
-<section id="materials" class="level2">
-<h2 class="anchored" data-anchor-id="materials">Materials</h2>
-<section id="remove-coral-tissue-1" class="level3">
-<h3 class="anchored" data-anchor-id="remove-coral-tissue-1">1. Remove coral tissue</h3>
+<section id="chlorophyll-extraction" class="level2">
+<h2 class="anchored" data-anchor-id="chlorophyll-extraction">1. Chlorophyll Extraction</h2>
+<section id="materials" class="level3">
+<h3 class="anchored" data-anchor-id="materials">Materials</h3>
 <ul class="task-list">
-<li><label><input type="checkbox">SCUBA tank and air gun</label></li>
-<li><label><input type="checkbox">Ziplock bags</label></li>
-<li><label><input type="checkbox">SSW</label></li>
-<li><label><input type="checkbox">Tissue homogenizer</label></li>
-<li><label><input type="checkbox">500 mL beaker</label></li>
-<li><label><input type="checkbox">Scale</label></li>
-<li><label><input type="checkbox">12x 50 mL tubes (2 sets of 6)</label></li>
-<li><label><input type="checkbox">1000 µL pipette and tips without filter (1 tip per sample)</label></li>
+<li><label><input type="checkbox">Acetone (2 mL per sample)</label></li>
+<li><label><input type="checkbox">Ice</label></li>
+<li><label><input type="checkbox">1,000 µL pipette and tips (2 tips per sample)</label></li>
 <li><label><input type="checkbox">Vortexter</label></li>
-<li><label><input type="checkbox">Ethanol for cleaning</label></li>
+<li><label><input type="checkbox">Centrifuge</label></li>
+<li><label><input type="checkbox">Kimwipes</label></li>
 </ul>
 </section>
-<section id="chlorophyll" class="level3">
-<h3 class="anchored" data-anchor-id="chlorophyll">2. Chlorophyll</h3>
-<ul class="task-list">
-<li><p><label><input type="checkbox">Acetone (2 mL per sample)</label></p></li>
-<li><p><label><input type="checkbox">1,000 µL pipette and tips (2 tips per sample)</label></p></li>
-<li><p><label><input type="checkbox">Vortexter</label></p></li>
-</ul>
-</section>
-<section id="symbiodiniaceae-counts-1" class="level3">
-<h3 class="anchored" data-anchor-id="symbiodiniaceae-counts-1">3. Symbiodiniaceae counts</h3>
-<ul class="task-list">
-<li><label><input type="checkbox">Haemocytometer</label></li>
-<li><label><input type="checkbox">Ethanol</label></li>
-<li><label><input type="checkbox">Stereo loupe</label></li>
-<li><label><input type="checkbox">50 µL pipette and tips <strong>CHECK!</strong></label></li>
-</ul>
-</section>
-</section>
-<section id="workflow" class="level2">
-<h2 class="anchored" data-anchor-id="workflow">Workflow</h2>
+<section id="method" class="level3">
+<h3 class="anchored" data-anchor-id="method">Method</h3>
 <div class="callout callout-style-default callout-caution callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -178,8 +175,64 @@ Caution
 <p>Chlorophyll is very unstable. Always keep samples on ice and if possible in darkness.</p>
 </div>
 </div>
-<section id="remove-coral-tissue-2" class="level3">
-<h3 class="anchored" data-anchor-id="remove-coral-tissue-2">1. Remove coral tissue</h3>
+<ol type="1">
+<li>Take rack with sample tubes</li>
+<li>Centrifuge up to 24 sample tubes using rotor 12154 for 5 min at 12,000 rpm at 4°C. Keep centrifuge balanced.</li>
+<li>Remove supernatant with 1,000 µL pipette. Remove remaining drops of supernatant with Kimwipes.</li>
+<li>Add 1,000 µL acetone and close tube. Homogenize with pipette and vortex for 15 s. Do not re-use tips.</li>
+<li>Extract chlorophyll for 24 h at 4 °C (Fridge Biomol 2). Keep samples wrapped in aluminium foil.</li>
+</ol>
+</section>
+</section>
+<section id="chlorophyll-measurement" class="level2">
+<h2 class="anchored" data-anchor-id="chlorophyll-measurement">2. Chlorophyll Measurement</h2>
+<section id="overview" class="level4">
+<h4 class="anchored" data-anchor-id="overview">Overview</h4>
+<p>The chlorophyll concentration (<span class="math inline">\(µg~mL^{-1}\)</span>) is calculated based on the formulas given in <span class="citation" data-cites="jeffrey1975">(<a href="#ref-jeffrey1975" role="doc-biblioref">Jeffrey &amp; Humphrey, 1975</a>)</span>:</p>
+<p><span class="math display">\[
+\text{Chlorophyll}~a = 11.43 \frac{A_{663} - A_{750}}{PL}  – 0.64\frac{A_{630} - A_{750}}{PL}
+\]</span></p>
+<p>, where <span class="math inline">\(A_{663}\)</span>, <span class="math inline">\(A_{630}\)</span>, and <span class="math inline">\(A_{750}\)</span> is the absorption at 663, 630, and 750 nm, and <span class="math inline">\(PL\)</span> the path length of the cuvette (1 cm).</p>
+</section>
+<section id="biotek-photometer" class="level4">
+<h4 class="anchored" data-anchor-id="biotek-photometer">BioTek Photometer</h4>
+<p>The photometer can read whole plates (96 samples). However, since acetone is used to extract the chlorophyll quartz cuvette has to be used instead of plates made of plastic. The software of the photometer still visualizes the measurements of this cuvette as a plate which can be confusing.</p>
+<p>The photometer will automatically measure the absorbtion at 663, 630, and 750 nm and does the blank-correction automatically. Each measurement is done twice and blanks are measured at the beginning and after 10 samples, resulting in the following plate outlay:</p>
+<p><img src="images/clipboard-3836681340.png" id="plateoverview" class="img-fluid" width="600"></p>
+<p><span style="background-color: #80FFFE">BLK</span> corresponds to blank measurements and <span style="background-color: #A6CAEE">SPLXX</span> to samples.</p>
+<p>Please follow the steps described in <strong>XX</strong> to enter the metadata (which sample is at which position, file names, etc).</p>
+</section>
+<section id="materials-1" class="level3">
+<h3 class="anchored" data-anchor-id="materials-1">Materials</h3>
+<ul class="task-list">
+<li><label><input type="checkbox">Vortexter</label></li>
+<li><label><input type="checkbox">Acetone</label></li>
+<li><label><input type="checkbox">Ice</label></li>
+<li><label><input type="checkbox">Kimwipes</label></li>
+<li><label><input type="checkbox">1000 µL pipette &amp; tips</label></li>
+<li><label><input type="checkbox">BioTek <strong>XXX</strong></label></li>
+<li><label><input type="checkbox">Quartz cuvette (dark and shattered)</label></li>
+</ul>
+</section>
+<section id="method-1" class="level3">
+<h3 class="anchored" data-anchor-id="method-1">Method</h3>
+<ol type="1">
+<li><p>After the incubation (note down incubation time), vortex samples for 15 s and centrifuge samples using rotor 12154 for 5 min at 12,000 rpm at 4 °C. Keep samples on ice and in darkness. Transport samples carefully to not damage the pellet.</p></li>
+<li><p>Turn on BioTek photometer and connect to Dell via USB</p></li>
+<li><p>Double-click on <code>2024_04_20_chlorophyll+carotinoides_andi.prt</code> to start software (backup stored <a href="photometer_configuration/2024_04_20_chlorophyll+carotinoides_andi.prt">here</a>)</p>
+<p><img src="images/Capture%20d'écran%202024-11-19%20161241.png" class="img-fluid" width="350"></p></li>
+<li><p>Click on <code>Create experiment and read now</code>:</p></li>
+<li><p>At first, the photometer measures without any cuvette. Follow the instructions in the pop-up and click <code>OK</code>.</p>
+<p><img src="images/clipboard-2278673067.png" class="img-fluid" width="350"></p></li>
+<li><p>Start measuring the blank. To do so, add 500 µL acetone into quartz cuvette and insert into photometer. Click <code>OK</code> in pop-up window.</p>
+<p><img src="images/clipboard-3845169148.png" class="img-fluid" width="350"></p></li>
+<li><p>Repeat blank measurement. Click on <code>Oui</code> in pop-up window.</p>
+<p><img src="images/clipboard-70391127.png" class="img-fluid" width="350"></p></li>
+<li><p>Measure first sample. Remove cuvette from photometer, clean with Kimwipes and add 500 µL sample extract. Click on <code>Oui</code> in pop-up window (as for second blank measurement).</p></li>
+<li><p>Repeat measurement (click <code>Oui</code>).</p></li>
+<li><p>Remove cuvette from photometer, clean with acetone and Kimwipes and measure next sample.</p></li>
+<li><p>Repeat as described before for 10 samples (i.e.&nbsp;20 measurements). Then, measure blank as described before (2x) and continue to measure samples.</p></li>
+</ol>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -190,46 +243,44 @@ Note
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>Work in batches of six samples at a time.</p>
+<p>If you do a mistake in the sequence of measurements, correct it accordingly in the table (see <a href="#problems">Problems</a>)</p>
 </div>
 </div>
-<ol type="1">
-<li>Transfer coral fragment into ziplock bag and add enough SSW to immerse sample. Use an air gun to remove all coral tissue. Afterwards, the white coral skeleton should be visible.</li>
-<li>Store the skeleton in original sample bag in -20°C freezer until surface measurement.</li>
-<li>Transfer tissue slurry into a pre-weighted (taraed) 500 mL beaker. Note the weight to estimate the volume of the tissue slurry.</li>
-<li>Homogenize tissue slurry for 30 - 60 s. Clean homogenizer with SSW and wipe dry between samples and clean with ethanol after use.</li>
-<li>Immediately transfer about 40 g tissue slurry into pre-weigh (taraed) 50 mL tube. Try to be exact to keep the centrifuge used later balanced.</li>
-<li>Centrifuge the 6 sample tubes using rotor 19676 for 20 min at 9,000 rpm at 4 °C.</li>
-<li>With a 1000 mL pipette, remove as much supernatant as possible without damaging the pellet. Vortex to re-suspend remaining tissue slurry.</li>
-<li>Centrifuge for 10 min with the other settings as in step 5. Repeat steps 6 - 7 until all supernatant was be removed.</li>
-<li>Add 3 mL SSW (1 mL pipette, tip can be re-used when not immersed) and vortex until solution is homogeneous. Divide solution for chlorophyll analysis (1 mL) and Symbiodiniaceae counts (1 mL) into Eppendorf tubes. Store all samples at 4 °C, keep chlorophyll samples wrapped in aluminium foil.</li>
+<ol start="8" type="1">
+<li><p>When finished or after measuring 43 sampels, click on <code>Non</code> in pop-up window.</p></li>
+<li><p>Save experiment in your folder. Name it as follows:</p>
+<p><code>YYYY_MM_DD_chl_adaptome_#.xpt</code></p>
+<p>, where <code>YYYY_MM_DD</code> is the date and <code>#</code> the batch number (each day, start with <code>1</code>), e.g.&nbsp;<code>2024_11_19_chl_adaptome_1.xpt</code>.</p></li>
+<li><p>To export the data, click on <code>Export</code>.</p>
+<p><img src="images/Capture%20d'écran%202024-11-19%20161812.png" class="img-fluid" width="350"></p></li>
+<li><p>Save data as <code>.txt</code> (default) in your folder and name it <code>YYYY_MM_DD_chl_adaptome_#.txt</code> (as described above).</p></li>
 </ol>
-</section>
-<section id="chlorophyll-1" class="level3">
-<h3 class="anchored" data-anchor-id="chlorophyll-1">2. Chlorophyll</h3>
-<ol type="1">
-<li><p>Centrifuge up to 24 sample tubes using rotor 12154 for 5 min at 12,000 rpm at 4°C. Keep centrifuge balanced.</p></li>
-<li><p>Remove supernatant with 1,000 µL pipette. Remove remaining drops of supernatant with Kimwipes.</p></li>
-<li><p>Add 1,000 µL acetone and close tube. Homogenize with pipette and vortex for 15 s. Do not re-use tips.</p></li>
-<li><p>Extract chlorophyll for 24 h at 4 °C. Keep samples wrapped in aluminium foil. Note the incubation time.</p></li>
-<li><p>Vortex samples for 15 s and centrifuge samples using rotor 12154 for 5 min at 12,000 rpm at 4 °C. Keep samples on ice and in darkness. Transport samples carefully to not damage the pellet.</p></li>
-<li><p>Measure 500 µl of chlorophyll extract in duplicates against an acetone blank. Re-blank (2x) after every 10 samples. Refer to <strong>XXX</strong> <strong>protocol</strong> for these measurements and the data export.</p></li>
-</ol>
-</section>
-<section id="symbiodiniaceae-counts-2" class="level3">
-<h3 class="anchored" data-anchor-id="symbiodiniaceae-counts-2">3. Symbiodiniaceae counts</h3>
-<ol type="1">
-<li>Clean haemocytometer with 96% EtOH and Kimwipes</li>
-<li>Vortex sample for 15 s.</li>
-<li>Add 10 µL sample solution into each of the 2 chamber in the haemocytometer. If necessary, dillute 200 mL samples in 800 µL SST.</li>
-<li>Count Symbiodiniaceae in both chambers and repeat 3 times per samples (6 count replicates per sample). If counts differ by more than 20%, repeat another time.</li>
-<li>Between each count, clean haemocytometer with 96% EtOH and Kimwipes. Vortex tubes between counts,</li>
-</ol>
+<div class="callout callout-style-default callout-caution callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Caution
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Backup your data each day you are measuring. Either upload the folder to Google Drive or save it on a USB key. Keep all data also on the computer.</p>
+</div>
+</div>
 </section>
 </section>
+<section id="problems" class="level2">
+<h2 class="anchored" data-anchor-id="problems">Problems</h2>
+<p>If the sequence of the measurements does not fit anymore to the assumed layout (see <a href="#plateoverview">plate overview</a>), the blank-correction does not work anymore. You can correct this by changing the <code>type</code> column for the corresponding positions (see <strong>metadata</strong> for more details).</p>
+
 </section>
 
-</main>
+<div id="quarto-appendix" class="default"><section class="quarto-appendix-contents" role="doc-bibliography" id="quarto-bibliography"><h2 class="anchored quarto-appendix-heading">References</h2><div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" data-line-spacing="2" role="list">
+<div id="ref-jeffrey1975" class="csl-entry" role="listitem">
+Jeffrey, S. W., &amp; Humphrey, G. F. (1975). New spectrophotometric equations for determining chlorophylls a, b, c1 and c2 in higher plants, algae and natural phytoplankton. <em>Biochemie Und Physiologie Der Pflanzen</em>, <em>167</em>(2), 191–194. <a href="https://doi.org/10.1016/S0015-3796(17)30778-3">https://doi.org/10.1016/S0015-3796(17)30778-3</a>
+</div>
+</div></section></div></main>
 <!-- /main column -->
 <script id="quarto-html-after-body" type="application/javascript">
 window.document.addEventListener("DOMContentLoaded", function (event) {

@@ -1,0 +1,10 @@
+/*-- scss:defaults --*/
+// Base document colors
+$link-color: #75AADB;
+$body-color: #141414;
+$font-family-sans-serif: Helvetica Neue;
+$fontsize: 1.2em;
+
+//Inline code
+$code-color: #737c94;
+$font-family-monospace: Menlo;

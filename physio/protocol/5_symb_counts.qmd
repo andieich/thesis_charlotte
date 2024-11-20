@@ -1,0 +1,29 @@
+---
+title: "Symbiodiniaceae Counts"
+format: 
+  html:
+    theme: [lux, style/style.css]
+    toc: true
+    toc-depth: 4
+    toc-title: " "
+    toc-location: left
+editor: visual  
+date: '2024-11-19'
+author: Andreas Eich
+---
+
+### Material
+
+-   [ ] Haemocytometer and glass cover
+-   [ ] Ethanol
+-   [ ] Kimwipes
+-   [ ] Microscope
+-   [ ] 50 µL pipette and tips **CHECK!**
+
+## Method
+
+1.  Clean haemocytometer with 96% EtOH and Kimwipes
+2.  Vortex sample for 15 s.
+3.  Add 10 µL sample solution into each of the 2 chamber in the haemocytometer. If necessary, dillute 200 mL samples in 800 µL SST.
+4.  Count Symbiodiniaceae in both chambers and repeat 3 times per samples (6 count replicates per sample). If counts differ by more than 20%, repeat another time.
+5.  Between each count, clean haemocytometer with 96% EtOH and Kimwipes. Vortex tubes between counts,

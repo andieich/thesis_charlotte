@@ -1,0 +1,82 @@
+---
+title: "Metadata"
+format: 
+  html:
+    theme: [lux, style/style.css]
+    toc: true
+    toc-depth: 4
+    toc-title: " "
+    toc-location: left
+editor: visual   
+date: '2024-11-19'
+author: Andreas Eich
+bibliography: bib/references.bib
+csl: bib/apa.csl
+---
+
+### Overview
+
+Type in all data in a Google Sheet. Like that, R can be used to easily blank-correct the measurements and normalize the chlorophyll concentration and Symbioniniaceae counts on the coral surface.
+
+[Here](https://docs.google.com/spreadsheets/d/1ORvxp1S-1TpO_f12Qnnd0LyK4phBG3kjY2a0tGh43uk/edit?usp=sharing) is an empty metadata sheet, please copy it before entering data.
+
+There are three tabs:
+
+1.  **Overview&Chl**: Information on the samples itself and the chlorophyll measurements
+2.  **Counts:** Information on Symbioniniaceae counts
+3.  **Area:** Information on area measurements
+
+To ensure that the R Script is working correctly:
+
+-   Do not rename columns or tab names.
+
+-   Columns in grey are filled in automatically, do not edit them.
+
+-   Some entries area directly verified to ensure the correct format (see below).
+
+-   Each column is explained in comments in the column name but here are some additional information.
+
+### **Tab: 1. Overview&Chl**
+
+-   **sampleID:** The sample ID, e.g. `1EDAL005P`.
+-   **bag number:** The number written on the bag.
+-   **type:** The type of the sample. Select either [ blank ]{style="background-color: #E6E6E6; color: #3D3D3D"} or [ sample ]{style="background-color: #11734B; color: #D4EDBC"}. For blanks, leave `sampleID` empty. In the photometer software, the order of blanks and samples is pre-defined, but in case something goes wrong (e.g. 3 measurements of blank instead of 2), it is important to keep track on where samples are saved.
+-   **date_extraction:** The date when the sample was extracted. Double click for calender view. As format, `DD/MM/YYYY` is expected. There will be a warning if the entry is not a correctly-formatted date.
+-   **W1:** The weight of the tissue slurry in g (after airbrushing). There will be a warning if something else than a number was entered. Leave cells corresponding to blank measurements empty.
+-   **W2:** The weight of the liquid in the falcon tube in g. There will be a warning if something else than a number was entered. Leave cells corresponding to blank measurements empty.
+-   **date_chl_measurement:** The date when the chlorophyll concentration of the sample was measured. Double click for calender view. As format, `DD/MM/YYYY` is expected. There will be a warning if the entry is not a correctly-formatted date.
+-   **m1** and **m2**: The position in the plate layout of the two measurements (e.g. `A1` and `A2`). It is important that this information is correct because it will be used to extract the corresponding measurements from the photometer file. You can copy the position names from the tab `positions`.
+-   **filename:** The exact file name of the chlorophyll measurements, e.g. `2024_11_19_chl_adaptome_1.txt`.
+-   **comment:** If anything is unclear or happened to the sample, describe it here.
+
+### **Tab: 2. Counts**
+
+-   **sampleID**, **bag number**, and **type**: These columns will be filled out automatically for rows in which `sample` was selected as type in the tab `1.Overview&Chl`. Do not edit these columns.
+
+-   **Date of counts:** The date of the symbiont counts. Double click for calender view. As format, `DD/MM/YYYY` is expected. There will be a warning if the entry is not a correctly-formatted date.
+
+-   **V_zoox:** The volume of sample in mL. There will be a warning if something else than a number was entered.
+
+-   **V_sw:** The volume of added seawater in mL. There will be a warning if something else than a number was entered.
+
+-   **c1** to **c6:** The Symbiodiniaceae counts. There will be a warning if something else than a number was entered.
+
+-   **mean count per sample:** The mean of Symbiodiniaceae counts will be automatically calculated based on the `c#` columns and the dilution (`V_zoox` and `V_sw`).
+
+-   **comment:** If anything is unclear or happened to the sample, describe it here.
+
+### **Tab: 3. Area**
+
+-   **sampleID**, **bag number**, and **type**: These columns will be filled out automatically for rows in which `sample` was selected as type in the tab `1.Overview&Chl`. Do not edit these columns.
+
+-   **w_initial:** The weight of the fragment (and rope) in g before any wax was added. There will be a warning if something else than a number was entered.
+
+-   **w1:** The weight of the fragment after the first dip in wax. There will be a warning if something else than a number was entered.
+
+-   **w1_scratched:** The weight of the fragment after the the wax of parts without tissue was removed. There will be a warning if something else than a number was entered.
+
+-   **w2:** The weight of the fragment after the second dip in wax. There will be a warning if something else than a number was entered.
+
+-   **w2_scratched:** The weight of the fragment after the the wax of the second dip of parts without tissue was removed. There will be a warning if something else than a number was entered.
+
+-   **comment:** If anything is unclear or happened to the sample, describe it here.

@@ -1,0 +1,26 @@
+---
+title: "Surface Area Measurement"
+format: 
+  html:
+    theme: [lux, style/style.css]
+    toc: true
+    toc-depth: 4
+    toc-title: " "
+    toc-location: left
+    mainfont: Helvetica Neue
+editor: visual   
+date: '2024-11-19'
+author: Andreas Eich
+bibliography: bib/references.bib
+csl: bib/apa.csl
+---
+
+## 
+
+Calculate Area by the increase in weigh between the first and second dip according to [@veal2010].
+
+$$
+A = 34.32 * \Delta w
+$$
+
+, where $A$ is the surface area in $cm^2$ and $\Delta w$ the the increase in weight in g.
