@@ -1,20 +1,18 @@
 ---
-title: "Protocol Chlorophyll"
+title: "Chlophyll extraction, Symbiodiniaceae counts, and surface measurement"
 format: 
   html:
+    theme: lux
     toc: true
     toc-depth: 4
     toc-title: ""
     toc-location: left
 editor: visual  
-date: '2024-04-02'
+date: '2024-11-19'
+author: Andreas Eich
 ---
 
 # Overview
-
-## **General remark**
-
-Chlorophyll degrades quickly under high temperatures and light. Keep the samples on ice and the lab as dark as possible.
 
 ## **Remove coral tissue**
 
